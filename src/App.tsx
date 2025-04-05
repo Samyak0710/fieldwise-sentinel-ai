@@ -43,19 +43,13 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         <TooltipProvider>
           <Toaster />
           <Sonner position="top-right" expand={true} closeButton richColors />
           <BrowserRouter>
-            {isAuthenticated && <NotificationSystem />}
             <Routes>
-              <Route 
-                path="/" 
-                element={
-                  isAuthenticated ? <Index /> : <Navigate to="/login" />
-                } 
-              />
+              <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
