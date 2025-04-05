@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import NotificationSystem from "./components/NotificationSystem";
 
 const queryClient = new QueryClient();
 
@@ -43,8 +44,9 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Sonner />
+        <Sonner position="top-right" expand={true} closeButton richColors />
         <BrowserRouter>
+          {isAuthenticated && <NotificationSystem />}
           <Routes>
             <Route 
               path="/" 

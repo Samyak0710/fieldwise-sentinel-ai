@@ -4,23 +4,34 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Leaf, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { Leaf, Lock, User, Eye, EyeOff, Mail } from 'lucide-react';
 
-const LoginForm = ({ onLogin, onToggleForm }: { onLogin: () => void, onToggleForm: () => void }) => {
+const SignupForm = ({ onSignup, onToggleForm }: { onSignup: () => void, onToggleForm: () => void }) => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    setError('');
     setIsLoading(true);
 
-    // Simulate login - in a real app, this would be a proper authentication
+    // Simulate signup - in a real app, this would be a proper authentication
     setTimeout(() => {
       setIsLoading(false);
       localStorage.setItem('isAuthenticated', 'true');
-      onLogin();
+      onSignup();
     }, 1500);
   };
 
@@ -32,17 +43,37 @@ const LoginForm = ({ onLogin, onToggleForm }: { onLogin: () => void, onToggleFor
             <Leaf className="h-8 w-8 text-primary" />
           </div>
         </div>
-        <CardTitle className="text-2xl font-bold">FieldWise Sentinel</CardTitle>
+        <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
         <CardDescription>
-          Sign in to access your intelligent pest management system
+          Sign up to access the FieldWise Sentinel intelligent pest management system
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-md">
+              {error}
+            </div>
+          )}
+          <div className="space-y-2">
+            <Label htmlFor="name">Full Name</Label>
+            <div className="relative">
+              <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+              <Input
+                id="name"
+                type="text"
+                placeholder="John Doe"
+                className="pl-10"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div className="relative">
-              <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+              <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
               <Input
                 id="email"
                 type="email"
@@ -79,28 +110,42 @@ const LoginForm = ({ onLogin, onToggleForm }: { onLogin: () => void, onToggleFor
               </button>
             </div>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+              <Input
+                id="confirmPassword"
+                type={showPassword ? "text" : "password"}
+                className="pl-10 pr-10"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
+            </div>
+          </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Sign In"}
+            {isLoading ? "Creating Account..." : "Create Account"}
           </Button>
         </form>
       </CardContent>
       <CardFooter className="flex flex-col space-y-2">
         <div className="text-center text-sm">
-          <button onClick={onToggleForm} className="text-primary hover:underline">
-            Don't have an account? Sign up
+          Already have an account?{" "}
+          <button
+            type="button"
+            onClick={onToggleForm}
+            className="text-primary hover:underline focus:outline-none"
+          >
+            Sign In
           </button>
         </div>
-        <div className="text-center text-sm mt-2">
-          <a href="#" className="text-primary hover:underline">
-            Forgot password?
-          </a>
-        </div>
         <div className="text-xs text-muted-foreground text-center">
-          By continuing, you agree to FieldWise's Terms of Service and Privacy Policy.
+          By signing up, you agree to FieldWise's Terms of Service and Privacy Policy.
         </div>
       </CardFooter>
     </Card>
   );
 };
 
-export default LoginForm;
+export default SignupForm;
