@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,29 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom agriculture-themed colors
+				fieldwise: {
+					green: {
+						DEFAULT: '#2F855A',
+						light: '#68D391',
+						dark: '#22543D'
+					},
+					earth: {
+						DEFAULT: '#A27B5C',
+						light: '#E2D2C3',
+						dark: '#7C5E45'
+					},
+					sky: {
+						DEFAULT: '#4299E1',
+						light: '#BEE3F8',
+						dark: '#2B6CB0'
+					},
+					alert: {
+						DEFAULT: '#E53E3E',
+						light: '#FEB2B2',
+						dark: '#9B2C2C'
+					}
 				}
 			},
 			borderRadius: {
@@ -84,11 +108,20 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-subtle': {
+					'0%, 100%': {
+						opacity: '1'
+					},
+					'50%': {
+						opacity: '0.8'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite'
 			}
 		}
 	},
