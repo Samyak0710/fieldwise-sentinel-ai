@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
-  DropletPlus, Calendar, Check, Clock, X, Plus, 
+  Droplets, Calendar, Check, Clock, X, Plus, 
   Filter, ArrowUpDown, ChevronRight 
 } from 'lucide-react';
 import { 
@@ -38,7 +38,7 @@ const TreatmentHistory: React.FC = () => {
         <CardHeader className="p-4 pb-2">
           <div className="flex justify-between items-center">
             <CardTitle className="text-lg font-medium flex items-center gap-2">
-              <DropletPlus className="h-5 w-5 text-primary" />
+              <Droplets className="h-5 w-5 text-primary" />
               Treatment History
             </CardTitle>
             <Button variant="outline" size="sm" className="h-8">
