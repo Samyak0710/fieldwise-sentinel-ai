@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Greenhouse, Palmtree, WifiOff } from 'lucide-react';
+import { Home, Palmtree, WifiOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const FarmTypesSection: React.FC = () => {
@@ -17,7 +17,7 @@ const FarmTypesSection: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <Card className="feature-card text-center">
             <CardHeader className="flex flex-col items-center">
-              <Greenhouse className="h-12 w-12 text-primary mb-4" />
+              <Home className="h-12 w-12 text-primary mb-4" />
               <CardTitle>Greenhouse Farmers</CardTitle>
             </CardHeader>
             <CardContent>
