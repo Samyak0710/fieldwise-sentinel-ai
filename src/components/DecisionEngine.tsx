@@ -18,13 +18,11 @@ const DecisionEngine: React.FC = () => {
   const [selectedZone, setSelectedZone] = useState('greenhouse-1');
   const { toast } = useToast();
   
-  // Load spray history from localStorage
   useEffect(() => {
     const savedHistory = localStorage.getItem('sprayHistory');
     if (savedHistory) {
       try {
         const parsed = JSON.parse(savedHistory);
-        // Convert string dates back to Date objects
         const history = parsed.map((item: any) => ({
           ...item,
           date: new Date(item.date)
@@ -36,13 +34,11 @@ const DecisionEngine: React.FC = () => {
     }
   }, []);
   
-  // Save spray history to localStorage when it changes
   useEffect(() => {
     localStorage.setItem('sprayHistory', JSON.stringify(sprayHistory));
   }, [sprayHistory]);
   
   const generateRecommendation = () => {
-    // Get mock environmental data
     const envReadings = localStorage.getItem('environmentalReadings');
     let environmentalData = null;
     if (envReadings) {
@@ -53,7 +49,6 @@ const DecisionEngine: React.FC = () => {
       }
     }
     
-    // Get mock pest detection data
     const pestData = localStorage.getItem('pestDetections');
     let pestDetections = [];
     if (pestData) {
@@ -64,20 +59,17 @@ const DecisionEngine: React.FC = () => {
       }
     }
     
-    // Check last spray date for this zone
     const lastSpray = sprayHistory
       .filter(spray => spray.location === selectedZone)
       .sort((a, b) => b.date.getTime() - a.date.getTime())[0];
     
     const daysSinceLastSpray = lastSpray 
       ? Math.floor((new Date().getTime() - new Date(lastSpray.date).getTime()) / (1000 * 60 * 60 * 24)) 
-      : 100; // If no spray history, set a large number
+      : 100;
     
-    // Decision logic
     const reasons: string[] = [];
     let decision: 'spray' | 'dont-spray' = 'dont-spray';
     
-    // Check pest pressure (simulated)
     const pestPressure = Math.random() > 0.5 ? 'high' : 'low';
     if (pestPressure === 'high') {
       reasons.push('High pest pressure detected in this zone.');
@@ -86,7 +78,6 @@ const DecisionEngine: React.FC = () => {
       reasons.push('Low pest pressure in this zone - monitoring recommended.');
     }
     
-    // Check environmental conditions
     if (environmentalData) {
       const { readings, cropStage } = environmentalData;
       
@@ -105,7 +96,6 @@ const DecisionEngine: React.FC = () => {
       }
     }
     
-    // Check spray interval
     if (daysSinceLastSpray < 7) {
       reasons.push(`Only ${daysSinceLastSpray} days since last treatment. Minimum 7-day interval required.`);
       decision = 'dont-spray';
@@ -113,18 +103,15 @@ const DecisionEngine: React.FC = () => {
       reasons.push(`${daysSinceLastSpray} days since last treatment, adequate interval for re-application if needed.`);
     }
     
-    // Random weather factor (simulated)
     const rainPredicted = Math.random() > 0.7;
     if (rainPredicted) {
       reasons.push('Rain predicted in the next 24 hours, reducing spray effectiveness.');
       decision = 'dont-spray';
     }
     
-    // Set the recommendation and justification
     setRecommendation(decision);
     setJustification(reasons);
     
-    // Notify with toast
     toast({
       title: decision === 'spray' ? 'Spray Recommended' : 'Spray Not Recommended',
       description: reasons[0],
@@ -149,7 +136,6 @@ const DecisionEngine: React.FC = () => {
       description: `Treatment applied in ${selectedZone} on ${new Date().toLocaleDateString()}`,
     });
     
-    // Reset recommendation after recording
     setRecommendation(null);
     setJustification([]);
   };
