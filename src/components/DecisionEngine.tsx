@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Check, BarChart, Droplets, Bug, Plant, Calendar } from 'lucide-react';
+import { AlertTriangle, Check, BarChart, Droplets, Bug, Leaf, Calendar } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 interface SprayHistory {
@@ -261,7 +260,7 @@ const DecisionEngine: React.FC = () => {
                 
                 <Card className="bg-primary/5">
                   <CardContent className="p-4 flex flex-col items-center">
-                    <Plant className="h-8 w-8 text-green-500 mb-2" />
+                    <Leaf className="h-8 w-8 text-green-500 mb-2" />
                     <span className="text-xs text-muted-foreground">Crop Stage</span>
                     <span className="text-xl font-medium">Vegetative</span>
                   </CardContent>

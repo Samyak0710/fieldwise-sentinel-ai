@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Settings, User, LogOut, Menu, X } from 'lucide-react';
+import { Settings, User, LogOut, Menu, X, Bug } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function NewHeader() {
@@ -63,7 +62,6 @@ export function NewHeader() {
             </Button>
           </div>
           
-          {/* Mobile menu button */}
           <div className="md:hidden">
             <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               {isMenuOpen ? (
@@ -76,7 +74,6 @@ export function NewHeader() {
         </div>
       </div>
       
-      {/* Mobile menu */}
       {isMenuOpen && (
         <div className="md:hidden bg-white">
           <div className="space-y-1 px-2 pb-3 pt-2">
