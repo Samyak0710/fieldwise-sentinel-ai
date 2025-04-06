@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Palmtree, WifiOff } from 'lucide-react';
+import { Home, Leaf, WifiOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const FarmTypesSection: React.FC = () => {
@@ -27,7 +27,7 @@ const FarmTypesSection: React.FC = () => {
           
           <Card className="feature-card text-center">
             <CardHeader className="flex flex-col items-center">
-              <Palmtree className="h-12 w-12 text-primary mb-4" />
+              <Leaf className="h-12 w-12 text-primary mb-4" />
               <CardTitle>Open Field Farmers</CardTitle>
             </CardHeader>
             <CardContent>
