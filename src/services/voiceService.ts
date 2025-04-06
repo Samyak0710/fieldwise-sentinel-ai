@@ -94,14 +94,15 @@ export const voiceService = {
       );
       
       // Save to localStorage for offline access
-      this.saveCommandToLocalStorage(apiResponse.data?.command || command);
+      const commandToSave = apiResponse.data && apiResponse.data.command ? apiResponse.data.command : command;
+      voiceService.saveCommandToLocalStorage(commandToSave);
       
-      return apiResponse.data as VoiceProcessingResult;
+      return apiResponse.data as VoiceProcessingResult || { command };
     } catch (error) {
       console.error('Failed to process voice command:', error);
       
       // Save to localStorage in case of error
-      this.saveCommandToLocalStorage(command);
+      voiceService.saveCommandToLocalStorage(command);
       
       return { command };
     }
@@ -137,9 +138,20 @@ export const voiceService = {
       );
       
       // Save to localStorage for offline access
-      this.saveCommandToLocalStorage(apiResponse.data?.command as VoiceCommand);
+      if (apiResponse.data && apiResponse.data.command) {
+        voiceService.saveCommandToLocalStorage(apiResponse.data.command);
+      }
       
-      return apiResponse.data as VoiceProcessingResult;
+      return apiResponse.data as VoiceProcessingResult || { 
+        command: {
+          id: `cmd-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          transcription: "Error processing audio",
+          response: "Sorry, there was an error processing your audio command.",
+          isProcessed: false,
+          isSimulated: true
+        } 
+      };
     } catch (error) {
       console.error('Failed to process voice command:', error);
       
@@ -155,7 +167,7 @@ export const voiceService = {
       };
       
       // Save to localStorage in case of error
-      this.saveCommandToLocalStorage(fallbackCommand);
+      voiceService.saveCommandToLocalStorage(fallbackCommand);
       
       return { command: fallbackCommand };
     }
@@ -194,7 +206,7 @@ export const voiceService = {
         }
       );
       
-      return apiResponse.data?.commands || [];
+      return apiResponse.data && apiResponse.data.commands ? apiResponse.data.commands : [];
     } catch (error) {
       console.error('Failed to get voice command history:', error);
       

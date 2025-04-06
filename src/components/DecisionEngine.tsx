@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Leaf, Droplets, Spray, Calendar, RefreshCw, AlertTriangle, Check } from 'lucide-react';
+import { Leaf, Droplets, CalendarDays, RefreshCw, AlertTriangle, Check, PieChart, Bugs, BarChart2 } from 'lucide-react';
 
 interface SprayHistory {
   date: Date;
@@ -238,7 +238,7 @@ const DecisionEngine: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <Card className="bg-primary/5">
                   <CardContent className="p-4 flex flex-col items-center">
-                    <Bug className="h-8 w-8 text-red-500 mb-2" />
+                    <Bugs className="h-8 w-8 text-red-500 mb-2" />
                     <span className="text-xs text-muted-foreground">Pest Pressure</span>
                     <span className="text-xl font-medium">Moderate</span>
                   </CardContent>
@@ -254,7 +254,7 @@ const DecisionEngine: React.FC = () => {
                 
                 <Card className="bg-primary/5">
                   <CardContent className="p-4 flex flex-col items-center">
-                    <Calendar className="h-8 w-8 text-blue-500 mb-2" />
+                    <CalendarDays className="h-8 w-8 text-blue-500 mb-2" />
                     <span className="text-xs text-muted-foreground">Last Treatment</span>
                     <span className="text-xl font-medium">9 days ago</span>
                   </CardContent>
@@ -262,7 +262,7 @@ const DecisionEngine: React.FC = () => {
                 
                 <Card className="bg-primary/5">
                   <CardContent className="p-4 flex flex-col items-center">
-                    <BarChart className="h-8 w-8 text-purple-500 mb-2" />
+                    <BarChart2 className="h-8 w-8 text-purple-500 mb-2" />
                     <span className="text-xs text-muted-foreground">Efficacy</span>
                     <span className="text-xl font-medium">86%</span>
                   </CardContent>
