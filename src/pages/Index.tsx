@@ -1,75 +1,199 @@
 
-import React from 'react';
-import NewHeader from '@/components/NewHeader';
-import Hero from '@/components/Hero';
-import FeaturesSection from '@/components/FeaturesSection';
-import StatsSection from '@/components/StatsSection';
-import BenefitsSection from '@/components/BenefitsSection';
-import FarmTypesSection from '@/components/FarmTypesSection';
-import NewFooter from '@/components/NewFooter';
+import { NewHeader } from "@/components/NewHeader";
+import Hero from "@/components/Hero";
+import StatsSection from "@/components/StatsSection";
+import FarmTypesSection from "@/components/FarmTypesSection";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { BugOff, AreaChart, Leaf, Wifi, Bot, Satellite, Droplets, Zap } from "lucide-react";
 
-const Index = () => {
+export default function Index() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen bg-white">
       <NewHeader />
       
-      <main className="flex-1">
-        <Hero 
-          backgroundImage="/lovable-uploads/7dad43a8-762b-4fcf-8ef2-8031147cc7eb.png"
-          title="Smarter Pest Control"
-          subtitle="with PestVision"
-          description="PestVision offers an intelligent pest management system using AI and computer vision to enhance crop health and productivity while reducing chemical use and costs, saving you time and resources."
-        />
+      {/* Hero Section */}
+      <Hero
+        backgroundImage="/placeholder.svg"
+        title="Smart Agricultural Pest Management"
+        subtitle="AI-Powered Detection & Decision Support"
+        description="Reduce pesticide usage by 60% while maintaining optimal crop health through intelligent pest detection and precise treatment recommendations."
+      />
+      
+      {/* Features Overview */}
+      <section className="py-20 px-4 bg-gray-50">
+        <div className="container mx-auto text-center mb-16">
+          <h2 className="text-3xl font-bold mb-4">Comprehensive Pest Management</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Our system combines cutting-edge AI detection with environmental monitoring to provide smart, timely recommendations.
+          </p>
+        </div>
         
-        <FeaturesSection />
-        
-        <BenefitsSection />
-        
-        <StatsSection />
-        
-        <div className="py-16 px-4 bg-secondary/50">
-          <div className="container mx-auto text-center">
-            <h2 className="section-title">Key Features of the PestVision Intelligent Pest Management System</h2>
-            <p className="section-description mb-8">
-              PestVision offers a suite of features designed to give you real-time pest management capabilities with health and environmental benefits.
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <BugOff className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">AI Pest Detection</h3>
+            <p className="text-muted-foreground mb-4">
+              YOLOv8-powered real-time detection of aphids, whiteflies, and bollworms with high accuracy.
             </p>
+            <ul className="text-sm space-y-2">
+              <li className="flex items-start">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 mr-2"></span>
+                <span>Image-based pest identification</span>
+              </li>
+              <li className="flex items-start">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 mr-2"></span>
+                <span>Density mapping and hotspot detection</span>
+              </li>
+              <li className="flex items-start">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 mr-2"></span>
+                <span>Historical trend analysis</span>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <AreaChart className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">Environmental Monitoring</h3>
+            <p className="text-muted-foreground mb-4">
+              Comprehensive sensor array for optimal treatment timing based on environmental conditions.
+            </p>
+            <ul className="text-sm space-y-2">
+              <li className="flex items-start">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 mr-2"></span>
+                <span>Temperature, humidity, and CO₂ tracking</span>
+              </li>
+              <li className="flex items-start">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 mr-2"></span>
+                <span>Weather forecast integration</span>
+              </li>
+              <li className="flex items-start">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 mr-2"></span>
+                <span>Spray condition recommendations</span>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <Leaf className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">Smart Decision Engine</h3>
+            <p className="text-muted-foreground mb-4">
+              Data-driven recommendations for when, where, and how to treat pest issues effectively.
+            </p>
+            <ul className="text-sm space-y-2">
+              <li className="flex items-start">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 mr-2"></span>
+                <span>Threshold-based spray recommendations</span>
+              </li>
+              <li className="flex items-start">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 mr-2"></span>
+                <span>Treatment history tracking</span>
+              </li>
+              <li className="flex items-start">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 mr-2"></span>
+                <span>Resistance management protocols</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        <div className="text-center mt-12">
+          <Link to="/dashboard">
+            <Button size="lg" className="px-8">
+              Explore the Dashboard
+            </Button>
+          </Link>
+        </div>
+      </section>
+      
+      {/* Advanced Technology Section */}
+      <section className="py-20 px-4 bg-white">
+        <div className="container mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold mb-4">Powered by Advanced Technology</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Our system combines multiple technologies to deliver a comprehensive solution for modern agriculture.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Wifi className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Offline Capability</h3>
+              <p className="text-muted-foreground">
+                Full functionality maintained even without internet connection, crucial for remote farming areas.
+              </p>
+            </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
-              <div className="p-6 bg-white rounded-lg shadow-md">
-                <h3 className="text-xl font-semibold mb-4">AI-Driven</h3>
-                <p>
-                  Our machine learning algorithms continuously improve detection accuracy by learning from new data inputs and farmer feedback.
-                </p>
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Bot className="h-8 w-8 text-primary" />
               </div>
-              
-              <div className="p-6 bg-white rounded-lg shadow-md">
-                <h3 className="text-xl font-semibold mb-4">Offline Mode</h3>
-                <p>
-                  Continue monitoring and receiving recommendations even in areas with limited internet connectivity.
-                </p>
+              <h3 className="text-xl font-bold mb-2">Voice Interface</h3>
+              <p className="text-muted-foreground">
+                Hands-free operation through natural language voice commands for field usage.
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Satellite className="h-8 w-8 text-primary" />
               </div>
+              <h3 className="text-xl font-bold mb-2">Zone Mapping</h3>
+              <p className="text-muted-foreground">
+                Field zone management with location-specific pest monitoring and recommendations.
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Droplets className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Spray Optimization</h3>
+              <p className="text-muted-foreground">
+                Precision recommendations that reduce chemical usage by up to 60% while maintaining efficacy.
+              </p>
             </div>
           </div>
         </div>
-        
-        <FarmTypesSection />
-        
-        <div className="py-16 px-4 bg-primary text-white">
-          <div className="container mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Transform Your Pest Management Approach?</h2>
-            <p className="text-xl max-w-2xl mx-auto mb-8">
-              Join thousands of farmers who are already benefiting from PestVision's innovative technology.
-            </p>
-            <button className="bg-white text-primary font-bold py-3 px-8 rounded-md hover:bg-gray-100 transition-colors">
-              Get Started Today
-            </button>
+      </section>
+      
+      {/* Farm Types Section */}
+      <FarmTypesSection />
+      
+      {/* Stats Section */}
+      <StatsSection />
+      
+      {/* CTA Section */}
+      <section className="py-20 px-4 bg-primary text-white">
+        <div className="container mx-auto text-center">
+          <Zap className="h-16 w-16 mx-auto mb-6 opacity-80" />
+          <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Pest Management?</h2>
+          <p className="text-xl max-w-2xl mx-auto mb-8 opacity-90">
+            Join the future of smart agriculture with our intelligent pest management system.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/dashboard">
+              <Button size="lg" variant="secondary" className="px-8 text-primary">
+                Try the Demo
+              </Button>
+            </Link>
+            <Link to="/login">
+              <Button size="lg" variant="outline" className="px-8 text-white border-white hover:bg-white/10">
+                Create Account
+              </Button>
+            </Link>
           </div>
         </div>
-      </main>
-      
-      <NewFooter />
+      </section>
     </div>
   );
-};
-
-export default Index;
+}

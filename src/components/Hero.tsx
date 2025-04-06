@@ -17,9 +17,9 @@ const Hero: React.FC<HeroProps> = ({ backgroundImage, title, subtitle, descripti
         className="absolute inset-0 bg-cover bg-center bg-no-repeat" 
         style={{ backgroundImage: `url(${backgroundImage})` }}
       ></div>
-      <div className="hero-overlay"></div>
+      <div className="absolute inset-0 bg-black/50"></div>
       
-      <div className="hero-content">
+      <div className="relative h-full flex flex-col items-center justify-center text-center text-white px-4 z-10">
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-2">{title}</h1>
         <h2 className="text-2xl md:text-3xl font-semibold mb-6">{subtitle}</h2>
         <p className="text-lg md:text-xl max-w-xl mx-auto mb-8">{description}</p>
