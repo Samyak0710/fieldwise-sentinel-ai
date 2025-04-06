@@ -1,17 +1,19 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NewHeader } from '@/components/NewHeader';
 import { Bug, Clock, Zap, Crop, Database, WifiOff, Check, Settings } from 'lucide-react';
-import PestDetectionEngine from '@/components/PestDetectionEngine';
-import EnvironmentalSensorSimulation from '@/components/EnvironmentalSensorSimulation';
 import DecisionEngine from '@/components/DecisionEngine';
+import RealtimeEnvironmentalData from '@/components/RealtimeEnvironmentalData';
+import RealtimePestDetection from '@/components/RealtimePestDetection';
 import VoiceCommandInterface from '@/components/VoiceCommandInterface';
 import ZoneManagement from '@/components/ZoneManagement';
 import SystemSettings from '@/components/SystemSettings';
 import ApiStatusIndicator from '@/components/ApiStatusIndicator';
 import AuthStatus from '@/components/AuthStatus';
+import FarmerChatbot from '@/components/FarmerChatbot';
+import { useWebSocket } from '@/hooks/useWebSocket';
 import { toast } from 'sonner';
 import { useLocation } from 'react-router-dom';
 
@@ -20,6 +22,7 @@ const Dashboard = () => {
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const location = useLocation();
+  const { isConnected, isSimulated } = useWebSocket();
   
   useEffect(() => {
     // Check if settings should be shown based on URL parameter
@@ -64,10 +67,10 @@ const Dashboard = () => {
       pestDetections: JSON.parse(localStorage.getItem('pestDetections') || '[]'),
       sprayHistory: JSON.parse(localStorage.getItem('sprayHistory') || '[]'),
       farmZones: JSON.parse(localStorage.getItem('farmZones') || '[]'),
-      voiceMessages: JSON.parse(localStorage.getItem('voiceMessages') || '[]')
+      voiceMessages: JSON.parse(localStorage.getItem('voiceCommands') || '[]')
     };
     
-    // Convert to CSV format (simplified version)
+    // Convert to CSV format
     const csv = Object.entries(data)
       .map(([key, value]) => `# ${key}\n${JSON.stringify(value)}`)
       .join('\n\n');
@@ -90,25 +93,73 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gray-50">
       <NewHeader />
       
-      {/* Main Dashboard */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-bold">Smart Pest Management Dashboard</h1>
+      {/* Offline notification */}
+      {!isOnline && (
+        <div className="bg-amber-500 text-white p-2 text-center text-sm flex items-center justify-center">
+          <WifiOff className="h-4 w-4 mr-2" />
+          You are currently offline. Limited functionality is available.
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="ml-4 h-7 text-xs bg-amber-600 text-white border-white hover:bg-amber-700"
+            onClick={handleSyncData}
+          >
+            Sync when online
+          </Button>
+        </div>
+      )}
+      
+      {/* API Status indicator */}
+      <div className="bg-primary/5 border-b p-2 text-sm flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center">
+            <span className={`w-2 h-2 rounded-full mr-2 ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></span>
+            <span>API Status: {isConnected ? 'Connected' : 'Disconnected'}</span>
+            {isSimulated && <span className="ml-2 bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded text-[10px]">Using Simulated Data</span>}
+          </div>
+          
+          <div className="flex items-center">
+            <span className="text-muted-foreground">Last synced: {lastSynced ? lastSynced.toLocaleTimeString() : 'Never'}</span>
+          </div>
+        </div>
+        
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-7 text-xs"
+            onClick={handleSyncData}
+            disabled={!isOnline}
+          >
+            <Database className="h-3.5 w-3.5 mr-1" />
+            Sync Data
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-7 text-xs"
+            onClick={handleExportData}
+          >
+            Export Data
+          </Button>
           
           <Button
             variant={showSettings ? "default" : "outline"}
             size="sm"
+            className="h-7 text-xs"
             onClick={() => setShowSettings(!showSettings)}
           >
-            <Settings className="h-4 w-4 mr-2" />
+            <Settings className="h-3.5 w-3.5 mr-1" />
             {showSettings ? "Close Settings" : "Settings"}
           </Button>
         </div>
-        
-        {/* API Status and Authentication Status */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <ApiStatusIndicator />
-          <AuthStatus />
+      </div>
+      
+      {/* Main Dashboard */}
+      <main className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-3xl font-bold">Smart Pest Management Dashboard</h1>
         </div>
         
         {showSettings ? (
@@ -164,8 +215,8 @@ const Dashboard = () => {
             
             {/* Main Components */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              <PestDetectionEngine />
-              <EnvironmentalSensorSimulation />
+              <RealtimePestDetection />
+              <RealtimeEnvironmentalData />
             </div>
             
             <div className="grid grid-cols-1 gap-8 mb-8">
@@ -174,7 +225,7 @@ const Dashboard = () => {
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <VoiceCommandInterface />
-              <ZoneManagement />
+              <FarmerChatbot />
             </div>
           </>
         )}
