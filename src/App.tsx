@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +7,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { ThemeProvider } from "next-themes";
 import NetworkStatus from "./components/NetworkStatus";
 import { ErrorBoundary } from "react-error-boundary";
+import ErrorBoundaryFallback from "./components/ErrorBoundaryFallback";
 import { Loader2 } from "lucide-react";
 
 // Lazy load components for better performance
@@ -22,23 +22,6 @@ const SuspenseFallback = () => (
   <div className="flex items-center justify-center h-screen w-full">
     <Loader2 className="h-8 w-8 animate-spin text-primary" />
     <span className="ml-2 text-lg">Loading application...</span>
-  </div>
-);
-
-// Error fallback component
-const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error, resetErrorBoundary: () => void }) => (
-  <div className="flex flex-col items-center justify-center h-screen p-4 text-center">
-    <h2 className="text-2xl font-bold text-red-600 mb-4">Something went wrong</h2>
-    <p className="text-gray-700 mb-4">We're sorry, but there was an error loading this part of the application.</p>
-    <pre className="bg-gray-100 p-4 rounded-md text-left text-red-600 text-sm mb-4 overflow-auto max-w-full">
-      {error.message}
-    </pre>
-    <button 
-      onClick={resetErrorBoundary}
-      className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-    >
-      Try again
-    </button>
   </div>
 );
 
@@ -173,7 +156,7 @@ const App = () => {
   }
 
   return (
-    <ErrorBoundary FallbackComponent={ErrorFallback}>
+    <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <TooltipProvider>

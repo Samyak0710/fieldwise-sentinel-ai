@@ -197,6 +197,15 @@ export const secureStore = {
   // Clear all secure items
   clear: (): void => {
     localStorage.clear();
+  },
+  
+  // Add these functions directly to the secureStore object
+  encryptData: async (data: any, key: CryptoKey): Promise<string> => {
+    return encryptData(data, key);
+  },
+  
+  decryptData: async <T = any>(data: string, key: CryptoKey): Promise<T> => {
+    return decryptData<T>(data, key);
   }
 };
 

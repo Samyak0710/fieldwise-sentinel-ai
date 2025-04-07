@@ -84,7 +84,7 @@ const NetworkStatus: React.FC<NetworkStatusProps> = ({ className }) => {
         .then((registration) => {
           // Check if sync is available in the registration
           if ('sync' in registration) {
-            return registration.sync.register('sync-data');
+            return (registration as any).sync.register('sync-data');
           } else {
             throw new Error('Background sync not available');
           }

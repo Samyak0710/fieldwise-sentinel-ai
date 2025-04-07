@@ -514,9 +514,11 @@ if (typeof window !== 'undefined') {
       // Notify service worker to sync data
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
         navigator.serviceWorker.ready.then(registration => {
-          registration.sync.register('sync-data').catch(err => {
-            console.error('Sync registration failed:', err);
-          });
+          if ('sync' in registration) {
+            (registration as any).sync.register('sync-data').catch((err: Error) => {
+              console.error('Sync registration failed:', err);
+            });
+          }
         });
       }
     }
