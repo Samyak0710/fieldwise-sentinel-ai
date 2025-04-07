@@ -9,6 +9,8 @@ import NetworkStatus from "./components/NetworkStatus";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorBoundaryFallback from "./components/ErrorBoundaryFallback";
 import { Loader2 } from "lucide-react";
+import VoiceAssistantButton from "./components/VoiceAssistantButton";
+import { initVoiceSynthesis } from "./services/voiceService";
 
 // Lazy load components for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -109,6 +111,11 @@ const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAppReady, setIsAppReady] = useState(false);
   
+  // Initialize voice synthesis on app start
+  useEffect(() => {
+    initVoiceSynthesis();
+  }, []);
+  
   // For demo purposes, check if user is authenticated
   useEffect(() => {
     // This is just for demo - in a real app, you'd check for a valid token
@@ -151,6 +158,14 @@ const App = () => {
     }
   }, []);
   
+  // Handle voice commands
+  const handleVoiceCommand = (command: string, response: string) => {
+    console.log(`Voice command processed: ${command}`);
+    console.log(`Response: ${response}`);
+    
+    // Navigation based on voice commands could be handled here
+  };
+  
   if (!isAppReady) {
     return <SuspenseFallback />;
   }
@@ -180,6 +195,9 @@ const App = () => {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
+              
+              {/* Global Voice Assistant Button */}
+              <VoiceAssistantButton position="bottom-right" onCommand={handleVoiceCommand} />
             </BrowserRouter>
           </TooltipProvider>
         </ThemeProvider>

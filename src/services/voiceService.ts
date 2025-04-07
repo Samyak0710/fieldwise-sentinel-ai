@@ -1,245 +1,239 @@
 
-import { apiService, ENDPOINTS } from './api';
-
-// Types for voice commands
-export interface VoiceCommand {
-  id: string;
-  timestamp: string;
-  audioBlob?: Blob;
-  transcription: string;
-  intent?: string;
-  entities?: Record<string, any>;
-  response: string;
-  isProcessed: boolean;
-  isSimulated: boolean;
+// Web Speech API types for TypeScript
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
 }
 
-export interface VoiceProcessingResult {
-  command: VoiceCommand;
-  responseAudio?: Blob;
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
 }
 
-// Mock intents and responses
-const mockIntents = [
-  {
-    pattern: /check\s+(zone|area)\s+(\w+)/i,
-    intent: 'check_zone',
-    response: (matches: RegExpMatchArray) => 
-      `${matches[2]} is currently showing low pest pressure. Last scan was 3 hours ago with 2 aphids detected.`
-  },
-  {
-    pattern: /spray\s+today/i,
-    intent: 'spray_recommendation',
-    response: () => 
-      'Based on current conditions, spraying is not recommended today. Pest pressure is below threshold, and rain is forecasted for the evening.'
-  },
-  {
-    pattern: /(record|report)\s+pest\s+sighting/i,
-    intent: 'record_pest_sighting',
-    response: () => 
-      'Pest sighting recorded. Would you like to schedule an automated scan of this area?'
-  },
-  {
-    pattern: /pest\s+(situation|status)/i,
-    intent: 'pest_status',
-    response: () => 
-      'Current pest situation: Low aphid pressure in Greenhouse 1, moderate whitefly activity in South Field. No bollworm detections in the last 48 hours.'
-  },
-  {
-    pattern: /last\s+(treatment|spray)/i,
-    intent: 'last_treatment',
-    response: () => 
-      'The last treatment was applied 9 days ago in the East Field using neem oil. Efficacy analysis shows approximately 85% reduction in target pest population.'
-  }
-];
+interface SpeechRecognitionResult {
+  length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal: boolean;
+}
 
-// Service functions
-export const voiceService = {
-  // Process text command (when speech-to-text happens in browser)
-  processTextCommand: async (text: string): Promise<VoiceProcessingResult> => {
-    // For rapid prototyping, process simple commands locally
-    let foundIntent = '';
-    let response = 'I didn\'t understand that command. Please try again.';
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognitionError extends Event {
+  error: string;
+  message: string;
+}
+
+// Define our voice assistant class
+export class VoiceAssistant {
+  recognition: any;
+  continuousListening: boolean = false;
+  onTranscriptChange: (transcript: string, isFinal: boolean) => void;
+  onListeningChange: (isListening: boolean) => void;
+  onCommandProcessed: (command: string, response: string) => void;
+  onError: (message: string) => void;
+
+  constructor(callbacks: {
+    onTranscriptChange?: (transcript: string, isFinal: boolean) => void;
+    onListeningChange?: (isListening: boolean) => void;
+    onCommandProcessed?: (command: string, response: string) => void;
+    onError?: (message: string) => void;
+  } = {}) {
+    // Assign callbacks
+    this.onTranscriptChange = callbacks.onTranscriptChange || (() => {});
+    this.onListeningChange = callbacks.onListeningChange || (() => {});
+    this.onCommandProcessed = callbacks.onCommandProcessed || (() => {});
+    this.onError = callbacks.onError || (() => {});
+
+    // Check if browser supports speech recognition
+    if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+      console.error('Speech recognition not supported in this browser');
+      this.onError('Speech recognition is not supported in this browser. Try using Chrome, Edge, or Safari.');
+      return;
+    }
+
+    // Initialize speech recognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    this.recognition = new SpeechRecognition();
+    this.recognition.continuous = false;
+    this.recognition.interimResults = true;
+    this.recognition.lang = 'en-US';
+    this.recognition.maxAlternatives = 1;
     
-    // Check if the command matches any intent patterns
-    for (const intent of mockIntents) {
-      const matches = text.match(intent.pattern);
-      if (matches) {
-        foundIntent = intent.intent;
-        response = intent.response(matches);
-        break;
+    // Set up event handlers
+    this.setupEventListeners();
+  }
+
+  setupEventListeners() {
+    this.recognition.onstart = () => {
+      console.log('Voice recognition started');
+      this.onListeningChange(true);
+    };
+
+    this.recognition.onend = () => {
+      console.log('Voice recognition ended');
+      this.onListeningChange(false);
+      
+      // Restart if continuous mode is intended
+      if (this.continuousListening) {
+        setTimeout(() => {
+          try {
+            this.recognition.start();
+          } catch (error) {
+            console.error('Error restarting recognition:', error);
+          }
+        }, 500);
       }
+    };
+
+    this.recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const result = event.results[event.resultIndex];
+      const transcript = result[0].transcript.trim();
+      
+      // Send interim results to UI
+      this.onTranscriptChange(transcript, result.isFinal);
+      
+      if (result.isFinal) {
+        console.log('Final transcript:', transcript);
+        this.processCommand(transcript.toLowerCase());
+      }
+    };
+
+    this.recognition.onerror = (event: SpeechRecognitionError) => {
+      console.error('Speech recognition error:', event.error, event.message);
+      this.handleRecognitionError(event);
+    };
+  }
+
+  start(continuous: boolean = false) {
+    try {
+      this.continuousListening = continuous;
+      this.recognition.start();
+    } catch (error) {
+      console.error('Error starting recognition:', error);
+      this.onError('Error starting voice recognition. Please try again.');
+    }
+  }
+
+  stop() {
+    this.continuousListening = false;
+    try {
+      this.recognition.stop();
+    } catch (error) {
+      console.error('Error stopping recognition:', error);
+    }
+  }
+
+  processCommand(transcript: string) {
+    let response = '';
+    
+    // Process voice commands - implement command detection patterns
+    if (transcript.includes('check zone') || transcript.includes('check area')) {
+      const zoneMatch = transcript.match(/check (zone|area) (\w+)/i);
+      if (zoneMatch && zoneMatch[2]) {
+        const zoneName = zoneMatch[2];
+        response = `Checking ${zoneName}. This zone is currently showing low pest pressure. Last scan was 3 hours ago with 2 aphids detected.`;
+      } else {
+        response = "I couldn't determine which zone you wanted to check. Please try again.";
+      }
+    } 
+    else if (transcript.includes('should i spray')) {
+      response = "Based on current conditions, spraying is not recommended today. Pest pressure is below threshold, and rain is forecasted for the evening which would reduce effectiveness.";
+    }
+    else if (transcript.includes('record pest') || transcript.includes('pest sighting')) {
+      response = "Pest sighting recorded. Would you like to schedule an automated scan of this area?";
+    }
+    else if (transcript.includes('pest situation') || transcript.includes('pest status')) {
+      response = "Current pest situation: Low aphid pressure in Greenhouse 1, moderate whitefly activity in South Field. No bollworm detections in the last 48 hours.";
+    }
+    else if (transcript.includes('last treatment') || transcript.includes('spray history')) {
+      response = "The last treatment was applied 9 days ago in the East Field using neem oil. Efficacy analysis shows approximately 85% reduction in target pest population.";
+    }
+    else {
+      response = "I'm not sure how to process that command. Try saying 'check zone 3', 'should I spray today', or 'show pest status'.";
     }
     
-    // Create a command object
-    const command: VoiceCommand = {
-      id: `cmd-${Date.now()}`,
-      timestamp: new Date().toISOString(),
-      transcription: text,
-      intent: foundIntent,
-      response,
-      isProcessed: true,
-      isSimulated: true
+    // Notify of command processed
+    this.onCommandProcessed(transcript, response);
+    
+    // Provide voice feedback
+    this.speak(response);
+  }
+
+  speak(text: string) {
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      // Create new utterance
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Optional: Configure voice properties
+      utterance.rate = 1.0; // Speech rate (0.1 to 10)
+      utterance.pitch = 1.0; // Speech pitch (0 to 2)
+      utterance.volume = 1.0; // Speech volume (0 to 1)
+      
+      // Use a female voice if available (optional)
+      const voices = window.speechSynthesis.getVoices();
+      const femaleVoice = voices.find(voice => voice.name.includes('female') || voice.name.includes('Female'));
+      if (femaleVoice) {
+        utterance.voice = femaleVoice;
+      }
+      
+      // Speak the text
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  handleRecognitionError(event: SpeechRecognitionError) {
+    let message = '';
+    switch (event.error) {
+      case 'not-allowed':
+        message = 'Microphone access denied. Please enable microphone permissions.';
+        break;
+      case 'audio-capture':
+        message = 'No microphone detected.';
+        break;
+      case 'no-speech':
+        message = 'No speech detected. Please try again.';
+        break;
+      case 'network':
+        message = 'Network error occurred. Please check your connection.';
+        break;
+      case 'aborted':
+        message = 'Speech recognition was aborted.';
+        break;
+      default:
+        message = `Error: ${event.error}`;
+    }
+    
+    this.onError(message);
+  }
+}
+
+// Initialize voice synthesis
+export const initVoiceSynthesis = () => {
+  if ('speechSynthesis' in window) {
+    // Load voices when available
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.getVoices();
     };
     
-    // In a real implementation, we would call the API
-    try {
-      const apiResponse = await apiService.post<VoiceProcessingResult>(
-        ENDPOINTS.VOICE_PROCESS,
-        { command: text },
-        {
-          fallbackToMock: true,
-          mockResponse: { command }
-        }
-      );
-      
-      // Save to localStorage for offline access
-      const commandToSave = apiResponse.data && apiResponse.data.command ? apiResponse.data.command : command;
-      voiceService.saveCommandToLocalStorage(commandToSave);
-      
-      return apiResponse.data as VoiceProcessingResult || { command };
-    } catch (error) {
-      console.error('Failed to process voice command:', error);
-      
-      // Save to localStorage in case of error
-      voiceService.saveCommandToLocalStorage(command);
-      
-      return { command };
-    }
-  },
-  
-  // Process audio command (when speech-to-text happens on server)
-  processAudioCommand: async (audioBlob: Blob): Promise<VoiceProcessingResult> => {
-    const formData = new FormData();
-    formData.append('audio', audioBlob);
-    
-    try {
-      // In a real implementation, we would call the API with the audio data
-      const apiResponse = await apiService.post<VoiceProcessingResult>(
-        ENDPOINTS.VOICE_PROCESS,
-        formData,
-        {
-          headers: {}, // Let the browser set the correct content-type for FormData
-          fallbackToMock: true,
-          mockResponse: {
-            command: {
-              id: `cmd-${Date.now()}`,
-              timestamp: new Date().toISOString(),
-              audioBlob,
-              transcription: "Check Zone 3",
-              intent: "check_zone",
-              entities: { zone: "3" },
-              response: "Zone 3 is currently showing low pest pressure. Last scan was 3 hours ago with 2 aphids detected.",
-              isProcessed: true,
-              isSimulated: true
-            }
-          }
-        }
-      );
-      
-      // Save to localStorage for offline access
-      if (apiResponse.data && apiResponse.data.command) {
-        voiceService.saveCommandToLocalStorage(apiResponse.data.command);
-      }
-      
-      return apiResponse.data as VoiceProcessingResult || { 
-        command: {
-          id: `cmd-${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          transcription: "Error processing audio",
-          response: "Sorry, there was an error processing your audio command.",
-          isProcessed: false,
-          isSimulated: true
-        } 
-      };
-    } catch (error) {
-      console.error('Failed to process voice command:', error);
-      
-      // Create a fallback command
-      const fallbackCommand: VoiceCommand = {
-        id: `cmd-${Date.now()}`,
-        timestamp: new Date().toISOString(),
-        audioBlob,
-        transcription: "Unknown command (offline mode)",
-        response: "Sorry, I couldn't process your command while offline. Please try again when connected.",
-        isProcessed: false,
-        isSimulated: true
-      };
-      
-      // Save to localStorage in case of error
-      voiceService.saveCommandToLocalStorage(fallbackCommand);
-      
-      return { command: fallbackCommand };
-    }
-  },
-  
-  // Get voice command history
-  getCommandHistory: async (limit: number = 10): Promise<VoiceCommand[]> => {
-    try {
-      const apiResponse = await apiService.get<{ commands: VoiceCommand[] }>(
-        `${ENDPOINTS.VOICE_PROCESS}/history?limit=${limit}`,
-        {
-          fallbackToMock: true,
-          mockResponse: {
-            commands: [
-              {
-                id: 'cmd-001',
-                timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-                transcription: "Check Zone 3",
-                intent: "check_zone",
-                entities: { zone: "3" },
-                response: "Zone 3 is currently showing low pest pressure. Last scan was 3 hours ago with 2 aphids detected.",
-                isProcessed: true,
-                isSimulated: true
-              },
-              {
-                id: 'cmd-002',
-                timestamp: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
-                transcription: "Should I spray today?",
-                intent: "spray_recommendation",
-                response: "Based on current conditions, spraying is not recommended today. Pest pressure is below threshold, and rain is forecasted for the evening.",
-                isProcessed: true,
-                isSimulated: true
-              }
-            ]
-          }
-        }
-      );
-      
-      return apiResponse.data && apiResponse.data.commands ? apiResponse.data.commands : [];
-    } catch (error) {
-      console.error('Failed to get voice command history:', error);
-      
-      // Try to get from localStorage as fallback
-      try {
-        const storedCommands = JSON.parse(localStorage.getItem('voiceCommands') || '[]');
-        return storedCommands.slice(0, limit);
-      } catch (e) {
-        console.error('Failed to get voice commands from localStorage:', e);
-        return [];
-      }
-    }
-  },
-  
-  // Save command to localStorage for offline access
-  saveCommandToLocalStorage: (command: VoiceCommand): void => {
-    try {
-      const storedCommands = JSON.parse(localStorage.getItem('voiceCommands') || '[]');
-      
-      // Remove audioBlob before storing (too large for localStorage)
-      const { audioBlob, ...commandToStore } = command;
-      
-      // Add to beginning of array
-      storedCommands.unshift(commandToStore);
-      
-      // Limit to 50 commands
-      if (storedCommands.length > 50) {
-        storedCommands.pop();
-      }
-      
-      localStorage.setItem('voiceCommands', JSON.stringify(storedCommands));
-    } catch (error) {
-      console.error('Failed to save voice command to localStorage:', error);
-    }
+    // Initial voices load
+    window.speechSynthesis.getVoices();
   }
+};
+
+// Helper to check if speech recognition is supported
+export const isSpeechRecognitionSupported = (): boolean => {
+  return 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
+};
+
+// Helper to check if speech synthesis is supported
+export const isSpeechSynthesisSupported = (): boolean => {
+  return 'speechSynthesis' in window;
 };

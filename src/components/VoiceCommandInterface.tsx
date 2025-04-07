@@ -3,8 +3,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mic, MicOff, Send, User, Bot, Volume2 } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
+import { Mic, MicOff, Send, User, Bot, Volume2, AlertCircle } from 'lucide-react';
+import { toast } from "sonner";
+import { VoiceAssistant, isSpeechRecognitionSupported, initVoiceSynthesis } from '@/services/voiceService';
 
 interface Message {
   id: string;
@@ -18,15 +19,25 @@ const VoiceCommandInterface: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
+  const [interimTranscript, setInterimTranscript] = useState('');
+  const [isSpeechSupported, setIsSpeechSupported] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
+  const voiceAssistantRef = useRef<VoiceAssistant | null>(null);
   
-  // Initial system message
+  // Initialize on component mount
   useEffect(() => {
+    // Check browser support
+    const speechSupported = isSpeechRecognitionSupported();
+    setIsSpeechSupported(speechSupported);
+    
+    // Initialize speech synthesis
+    initVoiceSynthesis();
+    
+    // Welcome message
     setMessages([
       {
         id: 'initial',
-        text: "Welcome to PestVision Voice Command System. How can I assist you with pest management today?",
+        text: "Welcome to FieldWise Voice Command System. How can I assist you with pest management today?",
         sender: 'system',
         timestamp: new Date()
       }
@@ -46,6 +57,56 @@ const VoiceCommandInterface: React.FC = () => {
         console.error('Error parsing saved messages:', error);
       }
     }
+    
+    // Initialize voice assistant if supported
+    if (speechSupported) {
+      voiceAssistantRef.current = new VoiceAssistant({
+        onTranscriptChange: (transcript, isFinal) => {
+          if (!isFinal) {
+            setInterimTranscript(transcript);
+          } else {
+            setInterimTranscript('');
+            
+            // Add user message when final
+            const userMessage: Message = {
+              id: `voice-${Date.now()}`,
+              text: transcript,
+              sender: 'user',
+              timestamp: new Date(),
+              isVoice: true
+            };
+            
+            setMessages(prev => [...prev, userMessage]);
+          }
+        },
+        onListeningChange: (listening) => {
+          setIsListening(listening);
+        },
+        onCommandProcessed: (command, response) => {
+          // Add system response
+          const systemMessage: Message = {
+            id: `resp-${Date.now()}`,
+            text: response,
+            sender: 'system',
+            timestamp: new Date()
+          };
+          
+          setMessages(prev => [...prev, systemMessage]);
+        },
+        onError: (message) => {
+          toast.error('Voice Recognition Error', {
+            description: message
+          });
+        }
+      });
+    }
+    
+    // Cleanup
+    return () => {
+      if (voiceAssistantRef.current) {
+        voiceAssistantRef.current.stop();
+      }
+    };
   }, []);
   
   // Save messages to localStorage when they change
@@ -58,7 +119,7 @@ const VoiceCommandInterface: React.FC = () => {
   // Auto-scroll to bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, interimTranscript]);
   
   const handleSendMessage = () => {
     if (!input.trim()) return;
@@ -74,50 +135,36 @@ const VoiceCommandInterface: React.FC = () => {
     setInput('');
     
     // Process the command
-    processCommand(input);
+    if (voiceAssistantRef.current) {
+      voiceAssistantRef.current.processCommand(input.toLowerCase());
+    } else {
+      // Fallback if voice assistant isn't initialized
+      processCommand(input);
+    }
   };
   
   const handleVoiceCommand = () => {
-    setIsListening(true);
-    
-    // Simulate voice recognition with predefined commands
-    const sampleCommands = [
-      "Check Zone 3",
-      "Should I spray today?",
-      "Record pest sighting in north field",
-      "What's the pest situation?",
-      "How many aphids were detected yesterday?",
-      "When was the last treatment applied?"
-    ];
-    
-    // Randomly select a command
-    setTimeout(() => {
-      const command = sampleCommands[Math.floor(Math.random() * sampleCommands.length)];
-      
-      const userMessage: Message = {
-        id: `voice-${Date.now()}`,
-        text: command,
-        sender: 'user',
-        timestamp: new Date(),
-        isVoice: true
-      };
-      
-      setMessages(prev => [...prev, userMessage]);
-      
-      // Process the voice command
-      processCommand(command);
-      
-      setIsListening(false);
-      
-      toast({
-        title: "Voice Command Detected",
-        description: command,
+    if (!isSpeechSupported) {
+      toast.error('Speech Recognition Not Supported', {
+        description: 'Your browser does not support the Web Speech API. Try using Chrome, Edge, or Safari.'
       });
-    }, 2000);
+      return;
+    }
+    
+    if (isListening) {
+      // Stop listening
+      voiceAssistantRef.current?.stop();
+    } else {
+      // Start listening
+      voiceAssistantRef.current?.start();
+      toast.info('Listening for voice commands...', {
+        duration: 2000
+      });
+    }
   };
   
+  // Fallback command processor (used when speech recognition isn't available)
   const processCommand = (command: string) => {
-    // Simulate processing time
     setTimeout(() => {
       let response = "I'm sorry, I don't understand that command.";
       
@@ -155,9 +202,11 @@ const VoiceCommandInterface: React.FC = () => {
       
       setMessages(prev => [...prev, systemMessage]);
       
-      // Text-to-speech simulation
-      const utterance = new SpeechSynthesisUtterance(response);
-      window.speechSynthesis.speak(utterance);
+      // Text-to-speech feedback
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(response);
+        window.speechSynthesis.speak(utterance);
+      }
     }, 1000);
   };
   
@@ -213,6 +262,20 @@ const VoiceCommandInterface: React.FC = () => {
                 </div>
               </div>
             ))}
+            
+            {/* Interim transcript display */}
+            {interimTranscript && (
+              <div className="flex justify-end mb-3">
+                <div className="bg-primary/30 text-primary-foreground rounded-lg p-3 max-w-3/4 animate-pulse">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Mic className="h-4 w-4" />
+                    <span className="text-xs font-medium">Listening...</span>
+                  </div>
+                  <p className="text-sm italic">{interimTranscript}</p>
+                </div>
+              </div>
+            )}
+            
             <div ref={messagesEndRef} />
           </div>
           
@@ -221,7 +284,7 @@ const VoiceCommandInterface: React.FC = () => {
               variant={isListening ? "default" : "outline"}
               className={`${isListening ? "bg-red-500 hover:bg-red-600" : ""}`}
               onClick={handleVoiceCommand}
-              disabled={isListening}
+              disabled={!isSpeechSupported && !isListening}
             >
               {isListening ? (
                 <>
@@ -230,7 +293,11 @@ const VoiceCommandInterface: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <MicOff className="h-4 w-4 mr-2" />
+                  {isSpeechSupported ? (
+                    <MicOff className="h-4 w-4 mr-2" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 mr-2" />
+                  )}
                   Voice Command
                 </>
               )}
@@ -273,6 +340,17 @@ const VoiceCommandInterface: React.FC = () => {
               )}
             </div>
           </div>
+          
+          {!isSpeechSupported && (
+            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-800 text-sm">
+              <p className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                <span>
+                  Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari for the best experience.
+                </span>
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
