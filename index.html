@@ -1,26 +1,104 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>fieldwise-sentinel-ai</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
-
-    <meta property="og:title" content="fieldwise-sentinel-ai" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <title>FieldWise Sentinel - Advanced Pest Monitoring</title>
+    <meta name="description" content="Advanced pest monitoring and environmental sensor platform for agriculture" />
+    <meta name="author" content="FieldWise Technologies" />
+    <meta name="theme-color" content="#10b981" />
+    
+    <!-- PWA Support -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="FieldWise" />
+    
+    <!-- Preconnect to API domain to speed up requests -->
+    <link rel="preconnect" href="http://localhost:4000" />
+    
+    <!-- SEO and Social Media -->
+    <meta property="og:title" content="FieldWise Sentinel" />
+    <meta property="og:description" content="Advanced pest monitoring and environmental sensor platform for agriculture" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-
+    <meta property="og:image" content="/icon-512.png" />
+    <meta property="og:url" content="https://fieldwise.example.com" />
+    
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:site" content="@fieldwise" />
+    <meta name="twitter:image" content="/icon-512.png" />
+    
+    <!-- Web accessibility declaration -->
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    
+    <!-- Performance optimizations -->
+    <link rel="preload" href="/src/main.tsx" as="script" />
+    <link rel="preload" href="/src/index.css" as="style" />
+    
+    <!-- CSS for immediate rendering (above the fold) -->
+    <style>
+      /* Critical CSS for initial render */
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      }
+      .app-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        width: 100vw;
+        background-color: #f5f5f5;
+        color: #333;
+      }
+      .app-loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        border-left-color: #10b981;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
   </head>
 
   <body>
-    <div id="root"></div>
-    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <div id="root">
+      <!-- Fallback for JS disabled or slow loading -->
+      <div class="app-loading">
+        <div class="app-loading-spinner"></div>
+        <p>Loading FieldWise Sentinel...</p>
+      </div>
+    </div>
+    
+    <!-- Add polyfill for older browsers if needed -->
+    <script>
+      // Feature detection and polyfill injection
+      if (!('serviceWorker' in navigator)) {
+        console.warn('Service Worker is not supported in this browser. Some offline features will not be available.');
+      }
+      
+      // Performance monitoring
+      if ('PerformanceObserver' in window) {
+        const observer = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            console.log(`[Performance] ${entry.name}: ${entry.startTime.toFixed(0)}ms`);
+          }
+        });
+        observer.observe({ entryTypes: ['largest-contentful-paint', 'layout-shift'] });
+      }
+    </script>
+    
+    <!-- Main script -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
