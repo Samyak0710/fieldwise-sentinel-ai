@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Thermometer, Droplets, Wind, Sprout } from 'lucide-react';
@@ -31,40 +32,43 @@ const RealtimeEnvironmentalData: React.FC = () => {
     const loadInitialData = async () => {
       try {
         const data = await environmentalService.getLatestReadings('greenhouse-1');
-        setSensorData({
-          temperature: data.temperature ? {
-            value: data.temperature.value,
-            unit: data.temperature.unit,
-            timestamp: data.temperature.timestamp,
-            location: data.temperature.location,
-            sensorId: data.temperature.id
-          } : undefined,
-          humidity: data.humidity ? {
-            value: data.humidity.value,
-            unit: data.humidity.unit,
-            timestamp: data.humidity.timestamp,
-            location: data.humidity.location,
-            sensorId: data.humidity.id
-          } : undefined,
-          co2: data.co2 ? {
-            value: data.co2.value,
-            unit: data.co2.unit,
-            timestamp: data.co2.timestamp,
-            location: data.co2.location,
-            sensorId: data.co2.id
-          } : undefined,
-          soil: data.soil ? {
-            value: data.soil.value,
-            unit: data.soil.unit,
-            timestamp: data.soil.timestamp,
-            location: data.soil.location,
-            sensorId: data.soil.id
-          } : undefined
-        });
-        setLastUpdated(new Date());
         
-        // Save to localStorage for offline access - using the original data structure
-        environmentalService.saveReadingsToLocalStorage(data);
+        if (data) {
+          setSensorData({
+            temperature: data.temperature ? {
+              value: data.temperature.value,
+              unit: data.temperature.unit,
+              timestamp: data.temperature.timestamp,
+              location: data.temperature.location,
+              sensorId: data.temperature.id
+            } : undefined,
+            humidity: data.humidity ? {
+              value: data.humidity.value,
+              unit: data.humidity.unit,
+              timestamp: data.humidity.timestamp,
+              location: data.humidity.location,
+              sensorId: data.humidity.id
+            } : undefined,
+            co2: data.co2 ? {
+              value: data.co2.value,
+              unit: data.co2.unit,
+              timestamp: data.co2.timestamp,
+              location: data.co2.location,
+              sensorId: data.co2.id
+            } : undefined,
+            soil: data.soil ? {
+              value: data.soil.value,
+              unit: data.soil.unit,
+              timestamp: data.soil.timestamp,
+              location: data.soil.location,
+              sensorId: data.soil.id
+            } : undefined
+          });
+          setLastUpdated(new Date());
+          
+          // Save to localStorage for offline access - using the original data structure
+          environmentalService.saveReadingsToLocalStorage(data);
+        }
       } catch (error) {
         console.error('Failed to load environmental data:', error);
         
