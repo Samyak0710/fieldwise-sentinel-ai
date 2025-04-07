@@ -11,8 +11,36 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import NotificationSystem from "./components/NotificationSystem";
+import NetworkStatus from "./components/NetworkStatus";
 
-const queryClient = new QueryClient();
+// Create a query client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Cache data for 5 minutes by default
+      staleTime: 5 * 60 * 1000,
+      // Retry failed requests 3 times
+      retry: 3,
+      // Use cached data while refetching
+      refetchOnWindowFocus: true,
+      // Make queries work offline with caching
+      networkMode: 'always',
+    },
+  },
+});
+
+// Register service worker for PWA functionality
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(registration => {
+        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      })
+      .catch(error => {
+        console.error('ServiceWorker registration failed: ', error);
+      });
+  });
+}
 
 const App = () => {
   // Simulate authentication state - in a real app, this would check for a valid token
@@ -49,10 +77,18 @@ const App = () => {
           <Toaster />
           <Sonner position="top-right" expand={true} closeButton richColors />
           <BrowserRouter>
+            <NetworkStatus />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route 
+                path="/dashboard" 
+                element={
+                  isAuthenticated ? 
+                    <Dashboard /> : 
+                    <Navigate to="/login" replace />
+                }
+              />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -1,0 +1,27 @@
+
+{
+  "name": "FieldWise Sentinel",
+  "short_name": "FieldWise",
+  "description": "Advanced pest monitoring and environmental sensor platform for agriculture",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ],
+  "orientation": "any",
+  "categories": ["agriculture", "monitoring", "productivity"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/dashboard",
+      "description": "View your pest monitoring dashboard"
+    }
+  ]
+}
