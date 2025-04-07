@@ -6,7 +6,6 @@ import { Bug, LogOut, MenuIcon } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import NotificationMenu from './NotificationMenu';
 import VoiceCommand from './VoiceCommand';
-import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
   const handleLogout = () => {
@@ -23,9 +22,7 @@ const Header: React.FC = () => {
         </div>
         
         <div className="hidden md:flex items-center space-x-1">
-          <Link to="/dashboard">
-            <Button variant="ghost" className="text-muted-foreground">Dashboard</Button>
-          </Link>
+          <Button variant="ghost" className="text-muted-foreground">Dashboard</Button>
           <Button variant="ghost" className="text-muted-foreground">Fields</Button>
           <Button variant="ghost" className="text-muted-foreground">Reports</Button>
           <Button variant="ghost" className="text-muted-foreground">Settings</Button>
@@ -46,9 +43,7 @@ const Header: React.FC = () => {
             </SheetTrigger>
             <SheetContent side="left">
               <div className="flex flex-col space-y-4 py-4">
-                <Link to="/dashboard">
-                  <Button variant="ghost" className="justify-start w-full">Dashboard</Button>
-                </Link>
+                <Button variant="ghost" className="justify-start">Dashboard</Button>
                 <Button variant="ghost" className="justify-start">Fields</Button>
                 <Button variant="ghost" className="justify-start">Reports</Button>
                 <Button variant="ghost" className="justify-start">Settings</Button>

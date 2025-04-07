@@ -5,7 +5,6 @@ import PestCard from './PestCard';
 import VoiceCommand from './VoiceCommand';
 import { Bug, Clock, Zap, ArrowRight, BarChart, Wifi, Database, PieChart } from 'lucide-react';
 import { pests, getDetectionsByPestId } from '@/utils/mockData';
-import { Link } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
   return (
@@ -67,10 +66,10 @@ const Dashboard: React.FC = () => {
               <Bug className="h-5 w-5 text-fieldwise-green" />
               Recent Pest Activity
             </h2>
-            <Link to="/dashboard" className="text-sm text-primary flex items-center">
-              <span>View Full Dashboard</span>
+            <a href="#" className="text-sm text-primary flex items-center">
+              <span>View All</span>
               <ArrowRight className="h-4 w-4 ml-1" />
-            </Link>
+            </a>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
