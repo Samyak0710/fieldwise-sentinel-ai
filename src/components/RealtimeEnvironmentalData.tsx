@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Thermometer, Droplets, Wind, Sprout } from 'lucide-react';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { WebSocketEvent } from '@/services/webSocketService';
-import { environmentalService } from '@/services/environmentalService';
+import { environmentalService, EnvironmentalData, EnvironmentalReading } from '@/services/environmentalService';
 
 interface SensorReading {
   value: number;
@@ -64,7 +63,7 @@ const RealtimeEnvironmentalData: React.FC = () => {
         });
         setLastUpdated(new Date());
         
-        // Save to localStorage for offline access
+        // Save to localStorage for offline access - using the original data structure
         environmentalService.saveReadingsToLocalStorage(data);
       } catch (error) {
         console.error('Failed to load environmental data:', error);
@@ -95,13 +94,67 @@ const RealtimeEnvironmentalData: React.FC = () => {
       setSensorData(data);
       setLastUpdated(new Date());
       
-      // Save to localStorage for offline access
-      environmentalService.saveReadingsToLocalStorage({
-        ...data,
+      // Convert SensorData to EnvironmentalData for saving to localStorage
+      const environmentalData: EnvironmentalData = {
         timestamp: new Date().toISOString(),
         location: 'greenhouse-1',
-        isSimulated
-      });
+        isSimulated: isSimulated
+      };
+      
+      // Convert temperature to EnvironmentalReading if it exists
+      if (data.temperature) {
+        environmentalData.temperature = {
+          id: data.temperature.sensorId,
+          timestamp: data.temperature.timestamp,
+          sensorType: 'temperature',
+          value: data.temperature.value,
+          unit: data.temperature.unit,
+          location: data.temperature.location,
+          isSimulated: isSimulated
+        };
+      }
+      
+      // Convert humidity to EnvironmentalReading if it exists
+      if (data.humidity) {
+        environmentalData.humidity = {
+          id: data.humidity.sensorId,
+          timestamp: data.humidity.timestamp,
+          sensorType: 'humidity',
+          value: data.humidity.value,
+          unit: data.humidity.unit,
+          location: data.humidity.location,
+          isSimulated: isSimulated
+        };
+      }
+      
+      // Convert co2 to EnvironmentalReading if it exists
+      if (data.co2) {
+        environmentalData.co2 = {
+          id: data.co2.sensorId,
+          timestamp: data.co2.timestamp,
+          sensorType: 'co2',
+          value: data.co2.value,
+          unit: data.co2.unit,
+          location: data.co2.location,
+          isSimulated: isSimulated
+        };
+      }
+      
+      // Convert soil to EnvironmentalReading if it exists
+      if (data.soil) {
+        environmentalData.soil = {
+          id: data.soil.sensorId,
+          timestamp: data.soil.timestamp,
+          sensorType: 'soil',
+          value: data.soil.value,
+          unit: data.soil.unit,
+          location: data.soil.location,
+          isSimulated: isSimulated
+        };
+      }
+      
+      // Save the converted data to localStorage
+      environmentalService.saveReadingsToLocalStorage(environmentalData);
     });
     
     return () => {
