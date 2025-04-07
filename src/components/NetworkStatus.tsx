@@ -82,7 +82,12 @@ const NetworkStatus: React.FC<NetworkStatusProps> = ({ className }) => {
     if ('serviceWorker' in navigator && 'SyncManager' in window) {
       navigator.serviceWorker.ready
         .then((registration) => {
-          return registration.sync.register('sync-data');
+          // Check if sync is available in the registration
+          if ('sync' in registration) {
+            return registration.sync.register('sync-data');
+          } else {
+            throw new Error('Background sync not available');
+          }
         })
         .catch((err) => {
           console.error('Sync registration failed:', err);
@@ -120,7 +125,7 @@ const NetworkStatus: React.FC<NetworkStatusProps> = ({ className }) => {
           <div className="flex items-center gap-1">
             <Wifi className="h-3 w-3" />
             <span className="hidden sm:inline">Online</span>
-            <Lock className="h-3 w-3 ml-2" title="Encrypted connection" />
+            <Lock className="h-3 w-3 ml-2" aria-label="Encrypted connection" />
             {lastSynced && (
               <span className="hidden md:inline text-xs ml-2">
                 Last sync: {new Date(lastSynced).toLocaleTimeString()}

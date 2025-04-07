@@ -57,15 +57,13 @@ const queryClient = new QueryClient({
       // Add 30 minute cache time
       gcTime: 30 * 60 * 1000,
       // Use optimistic updates
-      refetchOnMount: false,
-      // Add error handling
-      useErrorBoundary: true,
+      refetchOnMount: false
     },
     mutations: {
       // Don't retry mutations automatically
       retry: false,
       // Use optimistic updates
-      networkMode: 'online',
+      networkMode: 'online'
     },
   },
 });
@@ -84,19 +82,24 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
             name: 'periodic-background-sync' as PermissionName,
           }).then((status) => {
             if (status.state === 'granted') {
-              // Register for background sync every 24 hours
-              registration.periodicSync.register('sync-data', {
-                minInterval: 24 * 60 * 60 * 1000, // 24 hours
-              }).catch(error => {
-                console.error('Periodic background sync registration failed:', error);
-              });
+              // Check if periodicSync is available on this registration
+              const periodicSync = (registration as any).periodicSync;
               
-              // Register for automated backups every week
-              registration.periodicSync.register('backup-data', {
-                minInterval: 7 * 24 * 60 * 60 * 1000, // 7 days
-              }).catch(error => {
-                console.error('Periodic backup registration failed:', error);
-              });
+              if (periodicSync && typeof periodicSync.register === 'function') {
+                // Register for background sync every 24 hours
+                periodicSync.register('sync-data', {
+                  minInterval: 24 * 60 * 60 * 1000, // 24 hours
+                }).catch(error => {
+                  console.error('Periodic background sync registration failed:', error);
+                });
+                
+                // Register for automated backups every week
+                periodicSync.register('backup-data', {
+                  minInterval: 7 * 24 * 60 * 60 * 1000, // 7 days
+                }).catch(error => {
+                  console.error('Periodic backup registration failed:', error);
+                });
+              }
             }
           });
         }
