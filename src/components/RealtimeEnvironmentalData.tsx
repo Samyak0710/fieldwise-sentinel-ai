@@ -266,8 +266,6 @@ const SensorCard: React.FC<SensorCardProps> = ({ title, icon, value, unit, times
               }
             </div>
           </div>
-          
-          {/* Add a visual indicator or gauge here if needed */}
         </div>
       </CardContent>
     </Card>
