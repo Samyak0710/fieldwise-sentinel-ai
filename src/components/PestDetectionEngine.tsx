@@ -1,11 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Camera, Upload, Bug, AlertTriangle, Check, RefreshCw, BarChart } from 'lucide-react';
+import { Camera, Upload, Bug, AlertTriangle, Check, RefreshCw, BarChart, Volume2, VolumeX, BellRing, BellOff, Languages } from 'lucide-react';
 import { Progress } from "@/components/ui/progress";
-import { useToast } from "@/hooks/use-toast";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
+import { pestCommunicationService, CommunicationPreference } from '@/services/pestCommunicationService';
 
 interface Detection {
   id: string;
@@ -21,17 +24,106 @@ const mockImages = [
   '/placeholder.svg'
 ];
 
+const enhancedPestData = {
+  aphid: {
+    commonSigns: ['Curled leaves', 'Sticky honeydew', 'Black sooty mold'],
+    preferredConditions: 'Warm, dry weather with temperatures 65-80°F',
+    naturalEnemies: ['Ladybugs', 'Lacewings', 'Parasitic wasps'],
+    organicControls: ['Neem oil', 'Insecticidal soap', 'Strong water spray'],
+    chemicalControls: ['Imidacloprid', 'Acetamiprid', 'Pymetrozine'],
+    threshold: 15,
+  },
+  whitefly: {
+    commonSigns: ['White insects under leaves', 'Sticky honeydew', 'Yellow speckling'],
+    preferredConditions: 'Warm, humid weather with temperatures 75-85°F',
+    naturalEnemies: ['Encarsia formosa', 'Delphastus catalinae', 'Macrolophus pygmaeus'],
+    organicControls: ['Yellow sticky traps', 'Insecticidal soap', 'Neem oil'],
+    chemicalControls: ['Pyriproxyfen', 'Buprofezin', 'Spiromesifen'],
+    threshold: 10,
+  },
+  bollworm: {
+    commonSigns: ['Holes in fruits', 'Frass (waste) around entry holes', 'Eggs on leaves'],
+    preferredConditions: 'Warm nights, dry conditions, temperatures 70-90°F',
+    naturalEnemies: ['Trichogramma wasps', 'Predatory bugs', 'Bacillus thuringiensis (Bt)'],
+    organicControls: ['Bt sprays', 'Spinosad', 'Trap crops'],
+    chemicalControls: ['Chlorantraniliprole', 'Emamectin benzoate', 'Indoxacarb'],
+    threshold: 5,
+  }
+};
+
 const PestDetectionEngine: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [detections, setDetections] = useState<Detection[]>([]);
   const [analysisComplete, setAnalysisComplete] = useState(false);
   const [activeTab, setActiveTab] = useState('upload');
-  const { toast } = useToast();
+  const [enhancedDataEnabled, setEnhancedDataEnabled] = useState(true);
+  const [communicationPrefs, setCommunicationPrefs] = useState<CommunicationPreference>(
+    pestCommunicationService.getPreferences()
+  );
   
-  const generateMockDetections = () => {
+  useEffect(() => {
+    setCommunicationPrefs(pestCommunicationService.getPreferences());
+  }, []);
+  
+  useEffect(() => {
+    pestCommunicationService.savePreferences(communicationPrefs);
+  }, [communicationPrefs]);
+  
+  const generateEnhancedDetections = () => {
     const pestTypes: ('aphid' | 'whitefly' | 'bollworm')[] = ['aphid', 'whitefly', 'bollworm'];
-    const numDetections = Math.floor(Math.random() * 8) + 1; // 1-8 detections
+    
+    const primaryPestType = pestTypes[Math.floor(Math.random() * pestTypes.length)];
+    const secondaryPresence = Math.random() > 0.7;
+    
+    const numPrimaryPests = Math.floor(Math.random() * 10) + 1;
+    const numSecondaryPests = secondaryPresence ? Math.floor(Math.random() * 3) + 1 : 0;
+    
+    const secondaryPestType = pestTypes.filter(p => p !== primaryPestType)[
+      Math.floor(Math.random() * (pestTypes.length - 1))
+    ];
+    
+    const newDetections: Detection[] = [];
+    
+    for (let i = 0; i < numPrimaryPests; i++) {
+      const baseX = Math.random() * 0.7;
+      const baseY = Math.random() * 0.7;
+      
+      newDetections.push({
+        id: `detection-${Date.now()}-${i}`,
+        pestType: primaryPestType,
+        confidence: Math.random() * 0.15 + 0.8,
+        boundingBox: {
+          x: baseX + (Math.random() * 0.1),
+          y: baseY + (Math.random() * 0.1),
+          width: Math.random() * 0.1 + 0.05,
+          height: Math.random() * 0.1 + 0.05
+        },
+        timestamp: new Date()
+      });
+    }
+    
+    for (let i = 0; i < numSecondaryPests; i++) {
+      newDetections.push({
+        id: `detection-sec-${Date.now()}-${i}`,
+        pestType: secondaryPestType,
+        confidence: Math.random() * 0.2 + 0.7,
+        boundingBox: {
+          x: Math.random() * 0.8,
+          y: Math.random() * 0.8,
+          width: Math.random() * 0.1 + 0.05,
+          height: Math.random() * 0.1 + 0.05
+        },
+        timestamp: new Date()
+      });
+    }
+    
+    return newDetections;
+  };
+  
+  const generateBasicDetections = () => {
+    const pestTypes: ('aphid' | 'whitefly' | 'bollworm')[] = ['aphid', 'whitefly', 'bollworm'];
+    const numDetections = Math.floor(Math.random() * 8) + 1;
     
     const newDetections: Detection[] = [];
     
@@ -41,11 +133,11 @@ const PestDetectionEngine: React.FC = () => {
       newDetections.push({
         id: `detection-${Date.now()}-${i}`,
         pestType,
-        confidence: Math.random() * 0.3 + 0.7, // 70-100% confidence
+        confidence: Math.random() * 0.3 + 0.7,
         boundingBox: {
-          x: Math.random() * 0.8, // Random position within container
+          x: Math.random() * 0.8,
           y: Math.random() * 0.8,
-          width: Math.random() * 0.2 + 0.1, // Random size
+          width: Math.random() * 0.2 + 0.1,
           height: Math.random() * 0.2 + 0.1
         },
         timestamp: new Date()
@@ -56,7 +148,6 @@ const PestDetectionEngine: React.FC = () => {
   };
   
   const handleCameraCapture = () => {
-    // In a real app, this would access the camera
     setActiveTab('camera');
     setTimeout(() => {
       const randomImageIndex = Math.floor(Math.random() * mockImages.length);
@@ -92,22 +183,37 @@ const PestDetectionEngine: React.FC = () => {
     
     setIsAnalyzing(true);
     
-    // Simulate AI analysis with a delay
     setTimeout(() => {
-      const newDetections = generateMockDetections();
+      const newDetections = enhancedDataEnabled 
+        ? generateEnhancedDetections() 
+        : generateBasicDetections();
+      
       setDetections(newDetections);
       
-      // Store in localStorage for offline functionality
       const storedDetections = JSON.parse(localStorage.getItem('pestDetections') || '[]');
       localStorage.setItem('pestDetections', JSON.stringify([...storedDetections, ...newDetections]));
       
+      pestCommunicationService.communicateDetectionResults(
+        newDetections.map(d => ({
+          id: d.id,
+          timestamp: d.timestamp.toISOString(),
+          pestType: d.pestType,
+          confidence: d.confidence,
+          location: 'current-image',
+          count: 1,
+          boundingBoxes: [{
+            x: d.boundingBox.x,
+            y: d.boundingBox.y,
+            width: d.boundingBox.width,
+            height: d.boundingBox.height,
+            pestType: d.pestType,
+            confidence: d.confidence
+          }]
+        }))
+      );
+      
       setIsAnalyzing(false);
       setAnalysisComplete(true);
-      
-      toast({
-        title: "Analysis Complete",
-        description: `Detected ${newDetections.length} pests in the image`,
-      });
     }, 2500);
   };
   
@@ -115,6 +221,34 @@ const PestDetectionEngine: React.FC = () => {
     setSelectedFile(null);
     setAnalysisComplete(false);
     setDetections([]);
+  };
+  
+  const toggleVoice = () => {
+    setCommunicationPrefs(prev => ({
+      ...prev,
+      voiceEnabled: !prev.voiceEnabled
+    }));
+  };
+  
+  const toggleNotifications = () => {
+    setCommunicationPrefs(prev => ({
+      ...prev,
+      notificationsEnabled: !prev.notificationsEnabled
+    }));
+  };
+  
+  const toggleDetailedAnalysis = () => {
+    setCommunicationPrefs(prev => ({
+      ...prev,
+      detailedAnalysis: !prev.detailedAnalysis
+    }));
+  };
+  
+  const handleLanguageChange = (value: string) => {
+    setCommunicationPrefs(prev => ({
+      ...prev,
+      language: value as 'en' | 'es' | 'fr' | 'de'
+    }));
   };
   
   const renderBoundingBoxes = () => {
@@ -159,6 +293,10 @@ const PestDetectionEngine: React.FC = () => {
     return stats;
   };
   
+  const getPestInfo = (pestType: 'aphid' | 'whitefly' | 'bollworm') => {
+    return enhancedPestData[pestType];
+  };
+  
   const stats = getDetectionStats();
   
   return (
@@ -170,7 +308,7 @@ const PestDetectionEngine: React.FC = () => {
             AI Pest Detection Engine
           </CardTitle>
           <CardDescription>
-            Upload or capture an image to detect pests using YOLOv8 model
+            Upload or capture an image to detect pests using enhanced YOLOv8 model with communication features
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
@@ -187,6 +325,10 @@ const PestDetectionEngine: React.FC = () => {
               <TabsTrigger value="stats">
                 <BarChart className="h-4 w-4 mr-2" />
                 Detection Stats
+              </TabsTrigger>
+              <TabsTrigger value="settings">
+                <Languages className="h-4 w-4 mr-2" />
+                Communication
               </TabsTrigger>
             </TabsList>
             
@@ -285,6 +427,51 @@ const PestDetectionEngine: React.FC = () => {
                           <span className="font-medium">{Math.round(stats.avgConfidence * 100)}%</span>
                         </div>
                       </div>
+                      
+                      {enhancedDataEnabled && stats.total > 0 && (
+                        <div className="mt-4 pt-4 border-t">
+                          <h4 className="font-medium mb-2">Enhanced Analysis</h4>
+                          
+                          {stats.aphid > 0 && (
+                            <div className="mb-3 p-2 bg-white rounded-md">
+                              <h5 className="font-medium text-sm">Aphid Information</h5>
+                              <p className="text-xs mb-1">Threshold: {getPestInfo('aphid').threshold} per plant</p>
+                              <p className="text-xs text-amber-600">
+                                {stats.aphid > getPestInfo('aphid').threshold 
+                                  ? 'Treatment recommended' 
+                                  : 'Below treatment threshold'}
+                              </p>
+                              <p className="text-xs mt-1">Recommended controls: {getPestInfo('aphid').organicControls.join(', ')}</p>
+                            </div>
+                          )}
+                          
+                          {stats.whitefly > 0 && (
+                            <div className="mb-3 p-2 bg-white rounded-md">
+                              <h5 className="font-medium text-sm">Whitefly Information</h5>
+                              <p className="text-xs mb-1">Threshold: {getPestInfo('whitefly').threshold} per plant</p>
+                              <p className="text-xs text-amber-600">
+                                {stats.whitefly > getPestInfo('whitefly').threshold
+                                  ? 'Treatment recommended' 
+                                  : 'Below treatment threshold'}
+                              </p>
+                              <p className="text-xs mt-1">Recommended controls: {getPestInfo('whitefly').organicControls.join(', ')}</p>
+                            </div>
+                          )}
+                          
+                          {stats.bollworm > 0 && (
+                            <div className="mb-3 p-2 bg-white rounded-md">
+                              <h5 className="font-medium text-sm">Bollworm Information</h5>
+                              <p className="text-xs mb-1">Threshold: {getPestInfo('bollworm').threshold} per plant</p>
+                              <p className="text-xs text-red-600">
+                                {stats.bollworm > getPestInfo('bollworm').threshold
+                                  ? 'Immediate treatment recommended!' 
+                                  : 'Treatment recommended'}
+                              </p>
+                              <p className="text-xs mt-1">Recommended controls: {getPestInfo('bollworm').organicControls.join(', ')}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -418,6 +605,148 @@ const PestDetectionEngine: React.FC = () => {
                   <Button variant="link" size="sm" className="h-auto p-0">
                     Export as CSV
                   </Button>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="settings" className="mt-0">
+              <div className="p-4 bg-primary/5 rounded-lg space-y-4">
+                <h3 className="font-medium mb-2">Communication Preferences</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Configure how the AI communicates detection results with you
+                </p>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">
+                        {communicationPrefs.voiceEnabled ? (
+                          <Volume2 className="h-4 w-4 inline mr-2" />
+                        ) : (
+                          <VolumeX className="h-4 w-4 inline mr-2" />
+                        )}
+                        Voice Feedback
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Hear detection results spoken aloud
+                      </p>
+                    </div>
+                    <Switch 
+                      checked={communicationPrefs.voiceEnabled}
+                      onCheckedChange={toggleVoice}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">
+                        {communicationPrefs.notificationsEnabled ? (
+                          <BellRing className="h-4 w-4 inline mr-2" />
+                        ) : (
+                          <BellOff className="h-4 w-4 inline mr-2" />
+                        )}
+                        Notifications
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Show toast notifications for detection results
+                      </p>
+                    </div>
+                    <Switch
+                      checked={communicationPrefs.notificationsEnabled}
+                      onCheckedChange={toggleNotifications}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">
+                        Detailed Analysis
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Include treatment recommendations in communications
+                      </p>
+                    </div>
+                    <Switch
+                      checked={communicationPrefs.detailedAnalysis}
+                      onCheckedChange={toggleDetailedAnalysis}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-base">
+                      <Languages className="h-4 w-4 inline mr-2" />
+                      Language
+                    </Label>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Select language for voice feedback and notifications
+                    </p>
+                    <Select 
+                      value={communicationPrefs.language} 
+                      onValueChange={handleLanguageChange}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="en">English</SelectItem>
+                        <SelectItem value="es">Español</SelectItem>
+                        <SelectItem value="fr">Français</SelectItem>
+                        <SelectItem value="de">Deutsch</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">
+                        Enhanced Detection Data
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Use advanced pest data and image recognition
+                      </p>
+                    </div>
+                    <Switch
+                      checked={enhancedDataEnabled}
+                      onCheckedChange={setEnhancedDataEnabled}
+                    />
+                  </div>
+                </div>
+                
+                <div className="mt-6 p-3 bg-primary/10 rounded-md">
+                  <h4 className="font-medium text-sm mb-1">Training Status</h4>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Progress value={85} className="h-2 flex-1" />
+                    <span className="text-xs font-medium">85%</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    AI model trained on 12,500+ images of 25 crop varieties and 30+ pest species.
+                    Last updated: April 8, 2025
+                  </p>
+                </div>
+                
+                <div className="mt-4 border-t pt-4">
+                  <h4 className="font-medium mb-2">Test Communication</h4>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        const message = "Test detection complete. Found 3 aphids, 2 whiteflies, and 1 bollworm.";
+                        if (communicationPrefs.voiceEnabled && 'speechSynthesis' in window) {
+                          const utterance = new SpeechSynthesisUtterance(message);
+                          utterance.lang = communicationPrefs.language;
+                          window.speechSynthesis.speak(utterance);
+                        }
+                        if (communicationPrefs.notificationsEnabled) {
+                          toast.success('Test Notification', {
+                            description: message
+                          });
+                        }
+                      }}
+                      size="sm"
+                    >
+                      Test Notification
+                    </Button>
+                  </div>
                 </div>
               </div>
             </TabsContent>
