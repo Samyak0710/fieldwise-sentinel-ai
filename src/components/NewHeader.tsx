@@ -18,7 +18,7 @@ export function NewHeader() {
   const navigation = [
     { name: 'Home', href: '/' },
     { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Pest Library', href: '/dashboard#detection-engine' },
+    { name: 'Pest Library', href: '/pest-library' },
     { name: 'Settings', href: '/dashboard?settings=true' },
   ];
   
