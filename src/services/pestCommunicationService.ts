@@ -1,4 +1,3 @@
-
 import { PestDetection } from './pestDetectionService';
 import { toast } from 'sonner';
 
@@ -96,7 +95,7 @@ const prepareDetectionMessage = (detections: PestDetection[], isDetailedMode = f
       
       if (threshold && count >= threshold) {
         message += `ALERT: ${pestType} count (${count}) exceeds threshold (${threshold}). `;
-        message += `Recommended action: Spray ${detection.location} immediately. `;
+        message += `Recommended action: Spray ${detections[0].location} immediately. `;
       }
     }
     
