@@ -15,7 +15,9 @@ import {
   Sprout, 
   Languages, 
   Smartphone, 
-  Timer 
+  Timer,
+  Mic,
+  Camera
 } from 'lucide-react';
 
 const BenefitsSection: React.FC = () => {

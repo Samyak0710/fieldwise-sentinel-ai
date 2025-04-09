@@ -1,4 +1,3 @@
-
 import { NewHeader } from "@/components/NewHeader";
 import Hero from "@/components/Hero";
 import StatsSection from "@/components/StatsSection";
@@ -9,8 +8,9 @@ import BenefitsSection from "@/components/BenefitsSection";
 import VoiceCommandInterface from "@/components/VoiceCommandInterface";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { BugOff, AreaChart, Leaf, Wifi, Bot, Satellite, Droplets, Zap } from "lucide-react";
+import { BugOff, AreaChart, Leaf, Wifi, Bot, Satellite, Droplets, Zap, Mic } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function Index() {
   const [showDownloadModal, setShowDownloadModal] = useState(false);
