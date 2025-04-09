@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Camera, Upload, Bug, AlertTriangle, Check, RefreshCw, BarChart, Volume2, VolumeX, BellRing, BellOff, Languages } from 'lucide-react';
+import { Camera, Upload, Bug, AlertTriangle, Check, RefreshCw, BarChart, Volume2, VolumeX, BellRing, BellOff, Languages, Database } from 'lucide-react';
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,7 @@ import { pestCommunicationService, CommunicationPreference } from '@/services/pe
 
 interface Detection {
   id: string;
-  pestType: 'aphid' | 'whitefly' | 'bollworm';
+  pestType: 'aphid' | 'whitefly' | 'bollworm' | 'thrips' | 'caterpillar';
   confidence: number;
   boundingBox: { x: number, y: number, width: number, height: number };
   timestamp: Date;
@@ -48,6 +48,22 @@ const enhancedPestData = {
     organicControls: ['Bt sprays', 'Spinosad', 'Trap crops'],
     chemicalControls: ['Chlorantraniliprole', 'Emamectin benzoate', 'Indoxacarb'],
     threshold: 5,
+  },
+  thrips: {
+    commonSigns: ['Silvery scarring', 'Stippled leaves', 'Deformed growth'],
+    preferredConditions: 'Hot, dry weather with temperatures 75-90°F',
+    naturalEnemies: ['Predatory mites', 'Minute pirate bugs', 'Lacewings'],
+    organicControls: ['Blue sticky traps', 'Neem oil', 'Spinosad'],
+    chemicalControls: ['Spinetoram', 'Abamectin', 'Cyantraniliprole'],
+    threshold: 20,
+  },
+  caterpillar: {
+    commonSigns: ['Chewed leaf edges', 'Fecal pellets', 'Silk webbing'],
+    preferredConditions: 'Moderate temperatures 65-85°F, varying humidity',
+    naturalEnemies: ['Parasitic wasps', 'Birds', 'Bacillus thuringiensis (Bt)'],
+    organicControls: ['Bt sprays', 'Handpicking', 'Row covers'],
+    chemicalControls: ['Chlorantraniliprole', 'Methoxyfenozide', 'Spinosad'],
+    threshold: 8,
   }
 };
 
@@ -71,10 +87,11 @@ const PestDetectionEngine: React.FC = () => {
   }, [communicationPrefs]);
   
   const generateEnhancedDetections = () => {
-    const pestTypes: ('aphid' | 'whitefly' | 'bollworm')[] = ['aphid', 'whitefly', 'bollworm'];
+    const pestTypes: ('aphid' | 'whitefly' | 'bollworm' | 'thrips' | 'caterpillar')[] = 
+      ['aphid', 'whitefly', 'bollworm', 'thrips', 'caterpillar'];
     
     const primaryPestType = pestTypes[Math.floor(Math.random() * pestTypes.length)];
-    const secondaryPresence = Math.random() > 0.7;
+    const secondaryPresence = Math.random() > 0.6;
     
     const numPrimaryPests = Math.floor(Math.random() * 10) + 1;
     const numSecondaryPests = secondaryPresence ? Math.floor(Math.random() * 3) + 1 : 0;
@@ -122,7 +139,8 @@ const PestDetectionEngine: React.FC = () => {
   };
   
   const generateBasicDetections = () => {
-    const pestTypes: ('aphid' | 'whitefly' | 'bollworm')[] = ['aphid', 'whitefly', 'bollworm'];
+    const pestTypes: ('aphid' | 'whitefly' | 'bollworm' | 'thrips' | 'caterpillar')[] = 
+      ['aphid', 'whitefly', 'bollworm', 'thrips', 'caterpillar'];
     const numDetections = Math.floor(Math.random() * 8) + 1;
     
     const newDetections: Detection[] = [];
@@ -247,7 +265,33 @@ const PestDetectionEngine: React.FC = () => {
   const handleLanguageChange = (value: string) => {
     setCommunicationPrefs(prev => ({
       ...prev,
-      language: value as 'en' | 'es' | 'fr' | 'de'
+      language: value as 'en' | 'es' | 'fr' | 'de' | 'zh' | 'hi' | 'ru'
+    }));
+  };
+  
+  const handleVoiceRateChange = (value: string) => {
+    const rate = parseFloat(value);
+    setCommunicationPrefs(prev => ({
+      ...prev,
+      voiceRate: rate
+    }));
+  };
+  
+  const handleVoicePitchChange = (value: string) => {
+    const pitch = parseFloat(value);
+    setCommunicationPrefs(prev => ({
+      ...prev,
+      voicePitch: pitch
+    }));
+  };
+  
+  const updateThreshold = (pestType: string, value: number) => {
+    setCommunicationPrefs(prev => ({
+      ...prev,
+      alertThresholds: {
+        ...prev.alertThresholds,
+        [pestType]: value
+      }
     }));
   };
   
@@ -277,6 +321,8 @@ const PestDetectionEngine: React.FC = () => {
       aphid: 0,
       whitefly: 0,
       bollworm: 0,
+      thrips: 0,
+      caterpillar: 0,
       total: detections.length,
       avgConfidence: 0
     };
@@ -293,10 +339,11 @@ const PestDetectionEngine: React.FC = () => {
     return stats;
   };
   
-  const getPestInfo = (pestType: 'aphid' | 'whitefly' | 'bollworm') => {
+  const getPestInfo = (pestType: 'aphid' | 'whitefly' | 'bollworm' | 'thrips' | 'caterpillar') => {
     return enhancedPestData[pestType];
   };
   
+  const modelTrainingInfo = pestCommunicationService.getModelTrainingInfo();
   const stats = getDetectionStats();
   
   return (
@@ -308,7 +355,7 @@ const PestDetectionEngine: React.FC = () => {
             AI Pest Detection Engine
           </CardTitle>
           <CardDescription>
-            Upload or capture an image to detect pests using enhanced YOLOv8 model with communication features
+            Upload or capture an image to detect 5 pest types using enhanced YOLOv8 model with multilingual communication
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
@@ -329,6 +376,10 @@ const PestDetectionEngine: React.FC = () => {
               <TabsTrigger value="settings">
                 <Languages className="h-4 w-4 mr-2" />
                 Communication
+              </TabsTrigger>
+              <TabsTrigger value="training">
+                <Database className="h-4 w-4 mr-2" />
+                Model Training
               </TabsTrigger>
             </TabsList>
             
@@ -422,6 +473,20 @@ const PestDetectionEngine: React.FC = () => {
                           </div>
                           <Progress value={(stats.bollworm / stats.total) * 100} className="h-2 bg-muted" />
                         </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span>Thrips</span>
+                            <span className="font-medium">{stats.thrips}</span>
+                          </div>
+                          <Progress value={(stats.thrips / stats.total) * 100} className="h-2 bg-muted" />
+                        </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span>Caterpillars</span>
+                            <span className="font-medium">{stats.caterpillar}</span>
+                          </div>
+                          <Progress value={(stats.caterpillar / stats.total) * 100} className="h-2 bg-muted" />
+                        </div>
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">Average Confidence</span>
                           <span className="font-medium">{Math.round(stats.avgConfidence * 100)}%</span>
@@ -468,6 +533,32 @@ const PestDetectionEngine: React.FC = () => {
                                   : 'Treatment recommended'}
                               </p>
                               <p className="text-xs mt-1">Recommended controls: {getPestInfo('bollworm').organicControls.join(', ')}</p>
+                            </div>
+                          )}
+                          
+                          {stats.thrips > 0 && (
+                            <div className="mb-3 p-2 bg-white rounded-md">
+                              <h5 className="font-medium text-sm">Thrips Information</h5>
+                              <p className="text-xs mb-1">Threshold: {getPestInfo('thrips').threshold} per plant</p>
+                              <p className="text-xs text-amber-600">
+                                {stats.thrips > getPestInfo('thrips').threshold
+                                  ? 'Treatment recommended' 
+                                  : 'Below treatment threshold'}
+                              </p>
+                              <p className="text-xs mt-1">Recommended controls: {getPestInfo('thrips').organicControls.join(', ')}</p>
+                            </div>
+                          )}
+                          
+                          {stats.caterpillar > 0 && (
+                            <div className="mb-3 p-2 bg-white rounded-md">
+                              <h5 className="font-medium text-sm">Caterpillar Information</h5>
+                              <p className="text-xs mb-1">Threshold: {getPestInfo('caterpillar').threshold} per plant</p>
+                              <p className="text-xs text-amber-600">
+                                {stats.caterpillar > getPestInfo('caterpillar').threshold
+                                  ? 'Treatment recommended' 
+                                  : 'Below treatment threshold'}
+                              </p>
+                              <p className="text-xs mt-1">Recommended controls: {getPestInfo('caterpillar').organicControls.join(', ')}</p>
                             </div>
                           )}
                         </div>
@@ -555,6 +646,20 @@ const PestDetectionEngine: React.FC = () => {
                           </div>
                           <Progress value={(stats.bollworm / stats.total) * 100} className="h-2 bg-muted" />
                         </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span>Thrips</span>
+                            <span className="font-medium">{stats.thrips}</span>
+                          </div>
+                          <Progress value={(stats.thrips / stats.total) * 100} className="h-2 bg-muted" />
+                        </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span>Caterpillars</span>
+                            <span className="font-medium">{stats.caterpillar}</span>
+                          </div>
+                          <Progress value={(stats.caterpillar / stats.total) * 100} className="h-2 bg-muted" />
+                        </div>
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">Average Confidence</span>
                           <span className="font-medium">{Math.round(stats.avgConfidence * 100)}%</span>
@@ -585,6 +690,14 @@ const PestDetectionEngine: React.FC = () => {
                   <div className="flex-1 bg-white p-4 rounded-lg shadow-sm">
                     <div className="text-4xl font-bold text-red-500">10</div>
                     <div className="text-sm text-muted-foreground">Bollworms</div>
+                  </div>
+                  <div className="flex-1 bg-white p-4 rounded-lg shadow-sm">
+                    <div className="text-4xl font-bold text-green-500">5</div>
+                    <div className="text-sm text-muted-foreground">Thrips</div>
+                  </div>
+                  <div className="flex-1 bg-white p-4 rounded-lg shadow-sm">
+                    <div className="text-4xl font-bold text-purple-500">3</div>
+                    <div className="text-sm text-muted-foreground">Caterpillars</div>
                   </div>
                 </div>
                 
@@ -636,6 +749,44 @@ const PestDetectionEngine: React.FC = () => {
                       onCheckedChange={toggleVoice}
                     />
                   </div>
+                  
+                  {communicationPrefs.voiceEnabled && (
+                    <div className="space-y-4 pl-4 border-l-2 border-primary/20">
+                      <div className="space-y-2">
+                        <Label className="text-sm">Voice Rate</Label>
+                        <div className="flex items-center gap-4">
+                          <Slider 
+                            min={0.5}
+                            max={2}
+                            step={0.1}
+                            value={[communicationPrefs.voiceRate]}
+                            onValueChange={(values) => handleVoiceRateChange(values[0].toString())}
+                            className="flex-1"
+                          />
+                          <span className="text-sm font-medium w-8 text-right">
+                            {communicationPrefs.voiceRate.toFixed(1)}x
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-sm">Voice Pitch</Label>
+                        <div className="flex items-center gap-4">
+                          <Slider 
+                            min={0.5}
+                            max={2}
+                            step={0.1}
+                            value={[communicationPrefs.voicePitch]}
+                            onValueChange={(values) => handleVoicePitchChange(values[0].toString())}
+                            className="flex-1"
+                          />
+                          <span className="text-sm font-medium w-8 text-right">
+                            {communicationPrefs.voicePitch.toFixed(1)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
@@ -692,6 +843,9 @@ const PestDetectionEngine: React.FC = () => {
                         <SelectItem value="es">Español</SelectItem>
                         <SelectItem value="fr">Français</SelectItem>
                         <SelectItem value="de">Deutsch</SelectItem>
+                        <SelectItem value="zh">中文</SelectItem>
+                        <SelectItem value="hi">हिन्दी</SelectItem>
+                        <SelectItem value="ru">Русский</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -747,6 +901,233 @@ const PestDetectionEngine: React.FC = () => {
                       Test Notification
                     </Button>
                   </div>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="training" className="mt-0">
+              <div className="p-4 bg-primary/5 rounded-lg space-y-4">
+                <h3 className="font-medium mb-2">AI Model Training Information</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Details about the YOLOv8 model training and dataset used for pest detection
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">Dataset Composition</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span>Total Images</span>
+                          <span className="font-medium">{modelTrainingInfo.trainedOn}</span>
+                        </div>
+                        <Progress value={100} className="h-2 bg-muted" />
+                      </div>
+                      
+                      {modelTrainingInfo.pestTypes.map((pest) => (
+                        <div key={pest.name}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="capitalize">{pest.name}</span>
+                            <span className="font-medium">{pest.samples}</span>
+                          </div>
+                          <Progress 
+                            value={(pest.samples / modelTrainingInfo.trainedOn) * 100} 
+                            className="h-2 bg-muted" 
+                          />
+                        </div>
+                      ))}
+                      
+                      <div className="pt-2 border-t">
+                        <h4 className="font-medium text-sm mb-2">Environmental Coverage</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {modelTrainingInfo.environments.map((env) => (
+                            <Badge key={env} variant="outline" className="capitalize">
+                              {env}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="pt-2 border-t">
+                        <h4 className="font-medium text-sm mb-2">Lighting Conditions</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {modelTrainingInfo.lightingConditions.map((light) => (
+                            <Badge key={light} variant="outline" className="capitalize">
+                              {light}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">Performance Metrics</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span>mAP@50</span>
+                          <span className="font-medium">{modelTrainingInfo.mAP50}</span>
+                        </div>
+                        <Progress 
+                          value={modelTrainingInfo.mAP50 * 100} 
+                          className="h-2 bg-muted" 
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Mean Average Precision at 50% IoU threshold
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-3 pt-2 border-t">
+                        <h4 className="font-medium text-sm">Accuracy by Pest Type</h4>
+                        
+                        {modelTrainingInfo.pestTypes.map((pest) => (
+                          <div key={pest.name} className="space-y-1">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="capitalize">{pest.name}</span>
+                              <span>{(pest.accuracy * 100).toFixed(1)}%</span>
+                            </div>
+                            <Progress 
+                              value={pest.accuracy * 100} 
+                              className="h-1.5 bg-muted" 
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="pt-3 border-t">
+                        <h4 className="font-medium text-sm mb-2">Model Specifications</h4>
+                        <dl className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <dt className="text-muted-foreground">Model Architecture:</dt>
+                            <dd className="font-medium">{modelTrainingInfo.modelType}</dd>
+                          </div>
+                          <div className="flex justify-between">
+                            <dt className="text-muted-foreground">Optimized for Edge:</dt>
+                            <dd className="font-medium">{modelTrainingInfo.optimizedForEdge ? 'Yes' : 'No'}</dd>
+                          </div>
+                          <div className="flex justify-between">
+                            <dt className="text-muted-foreground">Target Devices:</dt>
+                            <dd className="font-medium">Jetson Nano, Xavier</dd>
+                          </div>
+                          <div className="flex justify-between">
+                            <dt className="text-muted-foreground">Inference Time:</dt>
+                            <dd className="font-medium">~35ms per frame</dd>
+                          </div>
+                          <div className="flex justify-between">
+                            <dt className="text-muted-foreground">Model Size:</dt>
+                            <dd className="font-medium">6.4 MB</dd>
+                          </div>
+                        </dl>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="md:col-span-2">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">Training Methodology</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <h4 className="font-medium text-sm">Data Preparation</h4>
+                            <ul className="list-disc pl-5 text-sm space-y-1">
+                              <li>Multi-source dataset compilation (public datasets + synthetic)</li>
+                              <li>Manual annotation of 3,200+ images</li>
+                              <li>Automated annotation of 2,000+ synthetic images</li>
+                              <li>Cross-validation split: 80/10/10</li>
+                            </ul>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <h4 className="font-medium text-sm">Augmentation Techniques</h4>
+                            <ul className="list-disc pl-5 text-sm space-y-1">
+                              <li>Random rotation (±15°)</li>
+                              <li>Brightness/contrast variation (±25%)</li>
+                              <li>Random horizontal flip</li>
+                              <li>Mosaic augmentation</li>
+                              <li>Random crop & scale</li>
+                            </ul>
+                          </div>
+                        </div>
+                        
+                        <div className="pt-3 border-t grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <h4 className="font-medium text-sm">Training Parameters</h4>
+                            <pre className="bg-muted p-2 rounded text-xs overflow-x-auto">
+{`model:
+  type: YOLOv8n
+  epochs: 300
+  batch_size: 16
+  image_size: 640
+  optimizer: AdamW
+  learning_rate: 0.001
+  weight_decay: 0.0005
+  scheduler: cosine`}
+                            </pre>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <h4 className="font-medium text-sm">Edge Optimization</h4>
+                            <pre className="bg-muted p-2 rounded text-xs overflow-x-auto">
+{`optimization:
+  quantization: INT8
+  pruning: True
+  pruning_sparsity: 0.3
+  export_format: TensorRT
+  target_device: Jetson Nano
+  target_fps: 25+`}
+                            </pre>
+                          </div>
+                        </div>
+                        
+                        <div className="pt-3 border-t">
+                          <h4 className="font-medium text-sm mb-2">Model Development Timeline</h4>
+                          <div className="relative">
+                            <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-primary/20"></div>
+                            <div className="space-y-4 pt-1">
+                              <div className="relative pl-6">
+                                <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-primary"></div>
+                                <div>
+                                  <h5 className="text-sm font-medium">Data Collection & Annotation</h5>
+                                  <p className="text-xs text-muted-foreground">Jan 2025 - Feb 2025</p>
+                                </div>
+                              </div>
+                              
+                              <div className="relative pl-6">
+                                <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-primary"></div>
+                                <div>
+                                  <h5 className="text-sm font-medium">Model Training & Validation</h5>
+                                  <p className="text-xs text-muted-foreground">Feb 2025 - Mar 2025</p>
+                                </div>
+                              </div>
+                              
+                              <div className="relative pl-6">
+                                <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-primary"></div>
+                                <div>
+                                  <h5 className="text-sm font-medium">Edge Optimization & Testing</h5>
+                                  <p className="text-xs text-muted-foreground">Mar 2025 - Apr 2025</p>
+                                </div>
+                              </div>
+                              
+                              <div className="relative pl-6">
+                                <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-primary"></div>
+                                <div>
+                                  <h5 className="text-sm font-medium">Deployment & Field Testing</h5>
+                                  <p className="text-xs text-muted-foreground">Apr 2025 - Present</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </div>
             </TabsContent>
