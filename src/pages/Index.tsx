@@ -3,11 +3,18 @@ import { NewHeader } from "@/components/NewHeader";
 import Hero from "@/components/Hero";
 import StatsSection from "@/components/StatsSection";
 import FarmTypesSection from "@/components/FarmTypesSection";
+import SystemComponentsSection from "@/components/SystemComponentsSection";
+import WorkflowSimulation from "@/components/WorkflowSimulation";
+import BenefitsSection from "@/components/BenefitsSection";
+import VoiceCommandInterface from "@/components/VoiceCommandInterface";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { BugOff, AreaChart, Leaf, Wifi, Bot, Satellite, Droplets, Zap } from "lucide-react";
+import { useState } from "react";
 
 export default function Index() {
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  
   return (
     <div className="min-h-screen bg-white">
       <NewHeader />
@@ -15,8 +22,8 @@ export default function Index() {
       {/* Hero Section */}
       <Hero
         backgroundImage="/placeholder.svg"
-        title="Smart Agricultural Pest Management"
-        subtitle="AI-Powered Detection & Decision Support"
+        title="AI-Driven Precision Pest Management"
+        subtitle="Smart Detection & Decision Support"
         description="Reduce pesticide usage by 60% while maintaining optimal crop health through intelligent pest detection and precise treatment recommendations."
       />
       
@@ -112,8 +119,57 @@ export default function Index() {
         </div>
       </section>
       
+      {/* System Components Section */}
+      <SystemComponentsSection />
+      
+      {/* Workflow Simulation Section */}
+      <WorkflowSimulation />
+      
+      {/* Voice Command Interface Section */}
+      <section id="voice-command" className="py-20 px-4 bg-white">
+        <div className="container mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold mb-4">Voice Command Interface</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Control the system hands-free with natural language commands, perfect for field operations.
+            </p>
+          </div>
+          
+          <VoiceCommandInterface />
+          
+          <div className="mt-12 max-w-4xl mx-auto bg-gray-50 p-6 rounded-lg">
+            <h3 className="text-xl font-bold mb-4">Sample Voice Commands</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <p className="font-medium mb-2 flex items-center">
+                  <Mic className="h-4 w-4 mr-2 text-primary" />
+                  Check Zone Commands
+                </p>
+                <ul className="space-y-2 text-sm">
+                  <li>"Check zone 3"</li>
+                  <li>"Show pest status in greenhouse"</li>
+                  <li>"What's the pest situation in north field?"</li>
+                </ul>
+              </div>
+              
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <p className="font-medium mb-2 flex items-center">
+                  <Droplets className="h-4 w-4 mr-2 text-primary" />
+                  Treatment Commands
+                </p>
+                <ul className="space-y-2 text-sm">
+                  <li>"Should I spray today?"</li>
+                  <li>"When was the last treatment?"</li>
+                  <li>"Record pest sighting in zone 2"</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
       {/* Advanced Technology Section */}
-      <section className="py-20 px-4 bg-white">
+      <section className="py-20 px-4 bg-gray-50">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">Powered by Advanced Technology</h2>
@@ -166,6 +222,9 @@ export default function Index() {
         </div>
       </section>
       
+      {/* Benefits & Future Enhancements Section */}
+      <BenefitsSection />
+      
       {/* Farm Types Section */}
       <FarmTypesSection />
       
@@ -186,14 +245,52 @@ export default function Index() {
                 Try the Demo
               </Button>
             </Link>
-            <Link to="/login">
-              <Button size="lg" variant="outline" className="px-8 text-white border-white hover:bg-white/10">
-                Create Account
-              </Button>
-            </Link>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="px-8 text-white border-white hover:bg-white/10"
+              onClick={() => setShowDownloadModal(true)}
+            >
+              Download PDF Summary
+            </Button>
           </div>
         </div>
       </section>
+      
+      {/* Download PDF Modal */}
+      {showDownloadModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4">Download System Summary</h3>
+            <p className="text-muted-foreground mb-6">
+              Please enter your email to receive our detailed PDF summary of the AI Vision Pest Management System.
+            </p>
+            <div className="space-y-4">
+              <input 
+                type="email" 
+                placeholder="Enter your email address" 
+                className="w-full px-4 py-2 border rounded-md"
+              />
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowDownloadModal(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setShowDownloadModal(false);
+                    window.open('/dummy-pest-management-summary.pdf');
+                    toast.success('Summary PDF sent to your email', {
+                      description: 'Check your inbox for the detailed system specification.'
+                    });
+                  }}
+                >
+                  Download
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
