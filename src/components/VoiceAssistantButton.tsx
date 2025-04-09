@@ -110,7 +110,8 @@ const VoiceAssistantButton: React.FC<VoiceAssistantButtonProps> = ({
         </div>
       )}
       
-      <style jsx>{`
+      <style>
+        {`
         @keyframes spin-slow {
           from {
             transform: rotate(0deg);
@@ -150,7 +151,8 @@ const VoiceAssistantButton: React.FC<VoiceAssistantButtonProps> = ({
             transform: translateY(0);
           }
         }
-      `}</style>
+        `}
+      </style>
     </>
   );
 };
