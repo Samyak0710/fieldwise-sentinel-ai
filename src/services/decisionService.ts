@@ -1,4 +1,3 @@
-
 import { apiService, ENDPOINTS } from './api';
 import { PestDetection } from './pestDetectionService';
 import { EnvironmentalData } from './environmentalService';
@@ -196,7 +195,7 @@ export const decisionService = {
   },
   
   // Record a spray application in Supabase and localStorage
-  recordSprayApplication: async (sprayData: Omit<SprayHistory, 'id'>): Promise<SprayHistory> {
+  recordSprayApplication: async (sprayData: Omit<SprayHistory, 'id'>) => {
     // Try to save to Supabase first
     try {
       const { data: supabaseData, error } = await supabase
@@ -265,7 +264,7 @@ export const decisionService = {
   },
   
   // Get spray history from Supabase and localStorage
-  getSprayHistory: async (location?: string): Promise<SprayHistory[]> {
+  getSprayHistory: async (location?: string) => {
     let history: SprayHistory[] = [];
     
     // Try to get from Supabase first
