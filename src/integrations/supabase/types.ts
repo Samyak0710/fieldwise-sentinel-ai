@@ -9,39 +9,7 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      spray_history: {
-        Row: {
-          created_at: string | null
-          efficacy_rating: number | null
-          field_id: string
-          id: string
-          method: string
-          notes: string | null
-          pest_id: string
-          spray_date: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          efficacy_rating?: number | null
-          field_id: string
-          id?: string
-          method: string
-          notes?: string | null
-          pest_id: string
-          spray_date?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          efficacy_rating?: number | null
-          field_id?: string
-          id?: string
-          method?: string
-          notes?: string | null
-          pest_id?: string
-          spray_date?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
