@@ -1,4 +1,3 @@
-
 // Types for our data model
 export interface Pest {
   id: string;
@@ -9,6 +8,7 @@ export interface Pest {
   affectedCrops: string[];
   recommendedTreatments: string[];
   imageUrl: string;
+  isBeneficial: boolean;
 }
 
 export interface Detection {
@@ -66,7 +66,8 @@ export const pests: Pest[] = [
     threat: 'medium',
     affectedCrops: ['tomatoes', 'peppers', 'cucumbers', 'lettuce'],
     recommendedTreatments: ['Neem oil', 'Insecticidal soap', 'Ladybugs (biological control)'],
-    imageUrl: '/placeholder.svg'
+    imageUrl: '/lovable-uploads/7dad43a8-762b-4fcf-8ef2-8031147cc7eb.png',
+    isBeneficial: false
   },
   {
     id: 'p2',
@@ -76,7 +77,8 @@ export const pests: Pest[] = [
     threat: 'high',
     affectedCrops: ['tomatoes', 'cucumbers', 'eggplants', 'peppers'],
     recommendedTreatments: ['Yellow sticky traps', 'Neem oil', 'Insecticidal soap', 'Encarsia formosa (parasitic wasp)'],
-    imageUrl: '/placeholder.svg'
+    imageUrl: '/lovable-uploads/a71cde7c-e0f1-49f0-9333-abb6970835c0.png',
+    isBeneficial: false
   },
   {
     id: 'p3',
@@ -86,7 +88,8 @@ export const pests: Pest[] = [
     threat: 'high',
     affectedCrops: ['beans', 'strawberries', 'cucumbers', 'tomatoes'],
     recommendedTreatments: ['Increasing humidity', 'Neem oil', 'Insecticidal soap', 'Predatory mites'],
-    imageUrl: '/placeholder.svg'
+    imageUrl: '/placeholder.svg',
+    isBeneficial: false
   },
   {
     id: 'p4',
@@ -96,7 +99,30 @@ export const pests: Pest[] = [
     threat: 'medium',
     affectedCrops: ['onions', 'beans', 'carrots', 'flowers'],
     recommendedTreatments: ['Blue sticky traps', 'Spinosad', 'Neem oil', 'Predatory mites'],
-    imageUrl: '/placeholder.svg'
+    imageUrl: '/placeholder.svg',
+    isBeneficial: false
+  },
+  {
+    id: 'p5',
+    name: 'Ladybug',
+    scientificName: 'Coccinellidae',
+    description: 'Beneficial insects that prey on aphids, mites, and other soft-bodied pests, providing natural pest control.',
+    threat: 'low',
+    affectedCrops: ['all crops'],
+    recommendedTreatments: ['Conservation', 'Habitat creation', 'Avoid broad-spectrum insecticides'],
+    imageUrl: '/placeholder.svg',
+    isBeneficial: true
+  },
+  {
+    id: 'p6',
+    name: 'Lacewing',
+    scientificName: 'Chrysopidae',
+    description: 'Beneficial insects whose larvae are voracious predators of aphids, mites, and small caterpillars.',
+    threat: 'low',
+    affectedCrops: ['all crops'],
+    recommendedTreatments: ['Conservation', 'Habitat creation', 'Avoid broad-spectrum insecticides'],
+    imageUrl: '/placeholder.svg',
+    isBeneficial: true
   }
 ];
 
@@ -255,4 +281,13 @@ export const getTreatmentsByPestId = (pestId: string): Treatment[] => {
 export const simulateNetworkStatus = (): boolean => {
   // Random offline status with 20% chance
   return Math.random() > 0.2;
+};
+
+// Add function to get beneficial and harmful pests
+export const getBeneficialPests = (): Pest[] => {
+  return pests.filter(pest => pest.isBeneficial);
+};
+
+export const getHarmfulPests = (): Pest[] => {
+  return pests.filter(pest => !pest.isBeneficial);
 };

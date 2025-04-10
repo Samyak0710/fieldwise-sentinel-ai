@@ -1,15 +1,16 @@
 
 import React, { useState } from 'react';
 import { NewHeader } from "@/components/NewHeader";
-import { pests, getDetectionsByPestId, getTreatmentsByPestId } from '@/utils/mockData';
+import { pests, getDetectionsByPestId, getTreatmentsByPestId, getBeneficialPests, getHarmfulPests } from '@/utils/mockData';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Bug, AlertTriangle, Droplets, ArrowLeft, ArrowRight, Filter } from 'lucide-react';
+import { Search, Bug, AlertTriangle, Droplets, ArrowLeft, ArrowRight, Filter, Info, BookOpen } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PestDetailsModal from '@/components/PestDetailsModal';
+import { useNavigate } from 'react-router-dom';
 
 export default function PestLibrary() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,13 +18,15 @@ export default function PestLibrary() {
   const [cropFilter, setCropFilter] = useState('all');
   const [selectedPest, setSelectedPest] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [pestTypeFilter, setPestTypeFilter] = useState('all'); // 'all', 'harmful', 'beneficial'
+  const navigate = useNavigate();
   
   // Get all unique crops from pest data
   const allCrops = Array.from(
     new Set(pests.flatMap(pest => pest.affectedCrops))
   ).sort();
   
-  // Filter pests based on search term and filters
+  // Filter pests based on search term, filters, and pest type
   const filteredPests = pests.filter(pest => {
     const matchesSearch = 
       pest.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -35,8 +38,13 @@ export default function PestLibrary() {
     const matchesCrop = 
       cropFilter === 'all' || 
       pest.affectedCrops.some(crop => crop.toLowerCase() === cropFilter.toLowerCase());
+      
+    const matchesPestType = 
+      pestTypeFilter === 'all' || 
+      (pestTypeFilter === 'beneficial' && pest.isBeneficial) ||
+      (pestTypeFilter === 'harmful' && !pest.isBeneficial);
     
-    return matchesSearch && matchesThreat && matchesCrop;
+    return matchesSearch && matchesThreat && matchesCrop && matchesPestType;
   });
   
   const getThreatColor = (threat) => {
@@ -51,6 +59,14 @@ export default function PestLibrary() {
   const handleOpenDetails = (pest) => {
     setSelectedPest(pest);
     setShowModal(true);
+  };
+
+  const handleGetStarted = () => {
+    navigate('/dashboard');
+  };
+  
+  const handleLearnMore = (pestId) => {
+    window.open(`https://ipm.ucanr.edu/PMG/PESTNOTES/pn${pestId}.html`, '_blank');
   };
   
   return (
@@ -69,16 +85,23 @@ export default function PestLibrary() {
             </p>
           </div>
           
-          <Button variant="outline" onClick={() => window.history.back()}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
+          <div className="space-x-2">
+            <Button variant="outline" onClick={() => window.history.back()}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+            
+            <Button onClick={handleGetStarted}>
+              Get Started
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
         </div>
         
         {/* Search and Filters */}
         <Card className="mb-8">
           <CardContent className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div className="md:col-span-2">
                 <div className="relative">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -125,6 +148,22 @@ export default function PestLibrary() {
                   </SelectContent>
                 </Select>
               </div>
+              
+              <div>
+                <Select value={pestTypeFilter} onValueChange={setPestTypeFilter}>
+                  <SelectTrigger>
+                    <span className="flex items-center">
+                      <Bug className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Filter by pest type" />
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Pests</SelectItem>
+                    <SelectItem value="harmful">Harmful Pests</SelectItem>
+                    <SelectItem value="beneficial">Beneficial Insects</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -145,11 +184,16 @@ export default function PestLibrary() {
                   <img 
                     src={pest.imageUrl} 
                     alt={pest.name} 
-                    className="h-32 w-32 object-contain" 
+                    className="h-full w-full object-contain" 
                   />
                   <Badge className={`absolute top-3 right-3 ${getThreatColor(pest.threat)}`}>
                     {pest.threat.charAt(0).toUpperCase() + pest.threat.slice(1)} Threat
                   </Badge>
+                  {pest.isBeneficial && (
+                    <Badge className="absolute top-3 left-3 bg-green-100 text-green-800">
+                      Beneficial
+                    </Badge>
+                  )}
                 </div>
                 
                 <CardHeader className="p-4 pb-2">
@@ -179,13 +223,24 @@ export default function PestLibrary() {
                     )}
                   </div>
                   
-                  <Button 
-                    className="w-full flex items-center justify-center" 
-                    onClick={() => handleOpenDetails(pest)}
-                  >
-                    View Details
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      className="flex-1 flex items-center justify-center" 
+                      onClick={() => handleOpenDetails(pest)}
+                    >
+                      View Details
+                      <Info className="ml-2 h-4 w-4" />
+                    </Button>
+                    
+                    <Button 
+                      className="flex-1 flex items-center justify-center"
+                      variant="outline"
+                      onClick={() => handleLearnMore(pest.id.replace('p', ''))}
+                    >
+                      Learn More
+                      <BookOpen className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))

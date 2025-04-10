@@ -118,6 +118,21 @@ export const decisionService = {
     environmentalData: EnvironmentalData,
     pestDetections: PestDetection[]
   ): Promise<SprayRecommendation> => {
+    // Enhanced decision logic to consider risk level
+    const pestTypes = pestDetections.map(p => p.pestType);
+    const highRiskPestDetected = pestTypes.some(type => 
+      type === 'bollworm' || // High-risk pests
+      pestDetections.filter(p => p.pestType === type).length > 15 // High count of any pest
+    );
+    
+    // Check for high threat level pests (regardless of count)
+    const highThreatPestPresent = pestTypes.includes('bollworm') || 
+                                 pestTypes.includes('whitefly') || 
+                                 pestTypes.some(type => {
+                                   const count = pestDetections.filter(p => p.pestType === type).length;
+                                   return count > 0 && type === 'caterpillar'; // Any caterpillar is high threat
+                                 });
+    
     const response = await apiService.post<SprayRecommendation>(
       ENDPOINTS.RECOMMENDATIONS,
       {
@@ -131,12 +146,15 @@ export const decisionService = {
           id: `rec-${Date.now()}`,
           timestamp: new Date().toISOString(),
           location,
-          decision: pestDetections.length > 5 ? 'spray' : 'dont-spray',
+          // Enhanced logic: spray if high risk pests detected regardless of count
+          decision: pestDetections.length > 5 || highThreatPestPresent ? 'spray' : 'dont-spray',
           pestType: pestDetections.length > 0 ? pestDetections[0].pestType : undefined,
           reasons: [
-            pestDetections.length > 5 
-              ? 'Pest population exceeds treatment threshold' 
-              : 'Pest population below treatment threshold',
+            highThreatPestPresent 
+              ? 'High threat pest detected - immediate action recommended regardless of count' 
+              : (pestDetections.length > 5 
+                ? 'Pest population exceeds treatment threshold' 
+                : 'Pest population below treatment threshold'),
             environmentalData.humidity && environmentalData.humidity.value > 70 
               ? 'High humidity increases risk of fungal disease' 
               : 'Environmental conditions are favorable'

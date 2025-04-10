@@ -70,12 +70,18 @@ const DecisionEngine: React.FC = () => {
     const reasons: string[] = [];
     let decision: 'spray' | 'dont-spray' = 'dont-spray';
     
-    const pestPressure = Math.random() > 0.5 ? 'high' : 'low';
-    if (pestPressure === 'high') {
-      reasons.push('High pest pressure detected in this zone.');
-      decision = 'spray';
+    const hasHighThreatPests = Math.random() > 0.7; // Simulating high threat pests
+    if (hasHighThreatPests) {
+      reasons.push('High threat pests detected in this zone (bollworm/whitefly).');
+      decision = 'spray'; // Spray regardless of pest count if high threat pests are present
     } else {
-      reasons.push('Low pest pressure in this zone - monitoring recommended.');
+      const pestPressure = Math.random() > 0.5 ? 'high' : 'low';
+      if (pestPressure === 'high') {
+        reasons.push('High pest pressure detected in this zone.');
+        decision = 'spray';
+      } else {
+        reasons.push('Low pest pressure in this zone - monitoring recommended.');
+      }
     }
     
     if (environmentalData) {
@@ -98,7 +104,10 @@ const DecisionEngine: React.FC = () => {
     
     if (daysSinceLastSpray < 7) {
       reasons.push(`Only ${daysSinceLastSpray} days since last treatment. Minimum 7-day interval required.`);
-      decision = 'dont-spray';
+      // Only override to don't spray if it's not a high threat pest situation
+      if (!hasHighThreatPests) {
+        decision = 'dont-spray';
+      }
     } else {
       reasons.push(`${daysSinceLastSpray} days since last treatment, adequate interval for re-application if needed.`);
     }
