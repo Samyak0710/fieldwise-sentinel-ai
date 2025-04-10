@@ -203,7 +203,7 @@ export const decisionService = {
         .insert({
           field_id: sprayData.location,
           pest_id: sprayData.target,
-          spray_date: sprayData.date,
+          spray_date: sprayData.date.toISOString(),
           method: sprayData.product,
           notes: sprayData.notes,
           efficacy_rating: 0 // Will be updated later
