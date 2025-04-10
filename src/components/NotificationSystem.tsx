@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Bell, Sprout, AlertTriangle, Info, CloudRain, Thermometer } from 'lucide-react';
+import { Bell, Sprout, AlertTriangle, Info, CloudRain, Thermometer, Bug, Skull } from 'lucide-react';
 
 type Notification = {
   id: string;
@@ -46,6 +46,24 @@ const NotificationSystem = () => {
           timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
           read: true,
           icon: <Sprout className="h-4 w-4" />
+        },
+        {
+          id: '4',
+          title: 'High Risk Pest Detected',
+          message: 'Bollworm detected in North Greenhouse - Immediate action required',
+          type: 'error',
+          timestamp: new Date(Date.now() - 1000 * 60 * 10), // 10 minutes ago
+          read: false,
+          icon: <Skull className="h-4 w-4" />
+        },
+        {
+          id: '5',
+          title: 'Beneficial Insects Detected',
+          message: 'Ladybugs detected in South Field - Natural pest control in action',
+          type: 'success',
+          timestamp: new Date(Date.now() - 1000 * 60 * 45), // 45 minutes ago
+          read: false,
+          icon: <Bug className="h-4 w-4" />
         }
       ];
 
@@ -64,7 +82,7 @@ const NotificationSystem = () => {
       const random = Math.random();
       let newNotification: Notification;
       
-      if (random < 0.33) {
+      if (random < 0.2) {
         newNotification = {
           id: Date.now().toString(),
           title: 'Temperature Alert',
@@ -74,7 +92,7 @@ const NotificationSystem = () => {
           read: false,
           icon: <Thermometer className="h-4 w-4" />
         };
-      } else if (random < 0.66) {
+      } else if (random < 0.4) {
         newNotification = {
           id: Date.now().toString(),
           title: 'System Update',
@@ -84,7 +102,7 @@ const NotificationSystem = () => {
           read: false,
           icon: <Info className="h-4 w-4" />
         };
-      } else {
+      } else if (random < 0.6) {
         newNotification = {
           id: Date.now().toString(),
           title: 'Treatment Reminder',
@@ -94,6 +112,26 @@ const NotificationSystem = () => {
           read: false,
           icon: <Bell className="h-4 w-4" />
         };
+      } else if (random < 0.8) {
+        newNotification = {
+          id: Date.now().toString(),
+          title: 'High Risk Pest Alert',
+          message: 'Whitefly detected in East Greenhouse - high threat level',
+          type: 'error',
+          timestamp: new Date(),
+          read: false,
+          icon: <Skull className="h-4 w-4" />
+        };
+      } else {
+        newNotification = {
+          id: Date.now().toString(),
+          title: 'Beneficial Insect Detection',
+          message: 'Lacewings detected in North Field - natural aphid control',
+          type: 'success',
+          timestamp: new Date(),
+          read: false,
+          icon: <Bug className="h-4 w-4" />
+        };
       }
       
       setNotifications(prev => [newNotification, ...prev]);
@@ -101,13 +139,21 @@ const NotificationSystem = () => {
     }, 120000); // Every 2 minutes
 
     generateSampleNotifications();
+    
+    // Display welcome notification on initial load
+    setTimeout(() => {
+      toast.success('Welcome to Pest Vision', {
+        description: 'Intelligent pest management system loaded successfully',
+        duration: 5000,
+      });
+    }, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
   const showToastNotification = (notification: Notification) => {
     const toastOptions = {
-      duration: 5000,
+      duration: notification.type === 'error' ? 10000 : 5000,
       icon: notification.icon,
       description: notification.message
     };

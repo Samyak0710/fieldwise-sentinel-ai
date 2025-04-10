@@ -1,3 +1,4 @@
+
 // Types for our data model
 export interface Pest {
   id: string;
@@ -88,7 +89,7 @@ export const pests: Pest[] = [
     threat: 'high',
     affectedCrops: ['beans', 'strawberries', 'cucumbers', 'tomatoes'],
     recommendedTreatments: ['Increasing humidity', 'Neem oil', 'Insecticidal soap', 'Predatory mites'],
-    imageUrl: '/placeholder.svg',
+    imageUrl: 'https://images.unsplash.com/photo-1631763376942-be2126bbb0af?q=80&w=300&auto=format&fit=crop',
     isBeneficial: false
   },
   {
@@ -99,7 +100,7 @@ export const pests: Pest[] = [
     threat: 'medium',
     affectedCrops: ['onions', 'beans', 'carrots', 'flowers'],
     recommendedTreatments: ['Blue sticky traps', 'Spinosad', 'Neem oil', 'Predatory mites'],
-    imageUrl: '/placeholder.svg',
+    imageUrl: 'https://images.unsplash.com/photo-1631763391747-2bcfba09c557?q=80&w=300&auto=format&fit=crop',
     isBeneficial: false
   },
   {
@@ -110,7 +111,7 @@ export const pests: Pest[] = [
     threat: 'low',
     affectedCrops: ['all crops'],
     recommendedTreatments: ['Conservation', 'Habitat creation', 'Avoid broad-spectrum insecticides'],
-    imageUrl: '/placeholder.svg',
+    imageUrl: 'https://images.unsplash.com/photo-1518032517211-d95d04e8dc2a?q=80&w=300&auto=format&fit=crop',
     isBeneficial: true
   },
   {
@@ -121,7 +122,29 @@ export const pests: Pest[] = [
     threat: 'low',
     affectedCrops: ['all crops'],
     recommendedTreatments: ['Conservation', 'Habitat creation', 'Avoid broad-spectrum insecticides'],
-    imageUrl: '/placeholder.svg',
+    imageUrl: 'https://images.unsplash.com/photo-1658935493837-4a174629cd6a?q=80&w=300&auto=format&fit=crop',
+    isBeneficial: true
+  },
+  {
+    id: 'p7',
+    name: 'Praying Mantis',
+    scientificName: 'Mantidae',
+    description: 'Large predatory insects that feed on a variety of pests including caterpillars, moths, and beetles.',
+    threat: 'low',
+    affectedCrops: ['all crops'],
+    recommendedTreatments: ['Habitat creation', 'Avoid pesticides', 'Release mantis egg cases'],
+    imageUrl: 'https://images.unsplash.com/photo-1658935490321-1a738810c582?q=80&w=300&auto=format&fit=crop',
+    isBeneficial: true
+  },
+  {
+    id: 'p8',
+    name: 'Hoverfly',
+    scientificName: 'Syrphidae',
+    description: 'Beneficial insects whose larvae feed on aphids while adults help with pollination.',
+    threat: 'low',
+    affectedCrops: ['all crops'],
+    recommendedTreatments: ['Plant flowering herbs', 'Maintain diverse garden', 'Avoid pesticides'],
+    imageUrl: 'https://images.unsplash.com/photo-1600182611641-1ecad81281b0?q=80&w=300&auto=format&fit=crop',
     isBeneficial: true
   }
 ];
@@ -290,4 +313,41 @@ export const getBeneficialPests = (): Pest[] => {
 
 export const getHarmfulPests = (): Pest[] => {
   return pests.filter(pest => !pest.isBeneficial);
+};
+
+// Function to classify a pest as beneficial or harmful
+export const classifyPest = (pestData: any): boolean => {
+  // List of known beneficial insect families
+  const beneficialFamilies = [
+    'coccinellidae', // ladybugs
+    'chrysopidae',   // lacewings
+    'syrphidae',     // hoverflies
+    'mantidae',      // mantises
+    'apidae',        // bees
+    'vespidae'       // wasps
+  ];
+  
+  // Check if the scientific name contains any beneficial family names
+  if (pestData.scientificName) {
+    const lowerCaseName = pestData.scientificName.toLowerCase();
+    if (beneficialFamilies.some(family => lowerCaseName.includes(family))) {
+      return true;
+    }
+  }
+  
+  // Check for keywords in the description
+  if (pestData.description) {
+    const lowerCaseDesc = pestData.description.toLowerCase();
+    if (
+      lowerCaseDesc.includes('beneficial') || 
+      lowerCaseDesc.includes('predator') || 
+      lowerCaseDesc.includes('parasitoid') ||
+      lowerCaseDesc.includes('pollinator')
+    ) {
+      return true;
+    }
+  }
+  
+  // Default to harmful if we can't determine
+  return false;
 };

@@ -1,10 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Leaf, Droplets, CalendarDays, RefreshCw, AlertTriangle, Check, PieChart, Bug, BarChart2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Leaf, Droplets, CalendarDays, RefreshCw, AlertTriangle, Check, PieChart, Bug, BarChart2, Skull } from 'lucide-react';
+import { decisionService, SprayHistory } from '../services/decisionService';
+import { supabase } from "@/integrations/supabase/client";
 
-interface SprayHistory {
+interface SprayHistoryItem {
   date: Date;
   location: string;
   pestType: string;
@@ -14,13 +18,33 @@ interface SprayHistory {
 const DecisionEngine: React.FC = () => {
   const [recommendation, setRecommendation] = useState<'spray' | 'dont-spray' | null>(null);
   const [justification, setJustification] = useState<string[]>([]);
-  const [sprayHistory, setSprayHistory] = useState<SprayHistory[]>([]);
+  const [sprayHistory, setSprayHistory] = useState<SprayHistoryItem[]>([]);
   const [selectedZone, setSelectedZone] = useState('greenhouse-1');
-  const { toast } = useToast();
+  const [threatLevel, setThreatLevel] = useState<'low' | 'medium' | 'high'>('low');
+  const { toast: uiToast } = useToast();
   
   useEffect(() => {
+    // Fetch spray history from Supabase when component mounts
+    const fetchSprayHistory = async () => {
+      try {
+        const history = await decisionService.getSprayHistory();
+        const formattedHistory = history.map(item => ({
+          date: new Date(item.date),
+          location: item.location,
+          pestType: item.target,
+          chemical: item.product
+        }));
+        setSprayHistory(formattedHistory);
+      } catch (error) {
+        console.error('Error fetching spray history:', error);
+      }
+    };
+    
+    fetchSprayHistory();
+    
+    // Fallback to localStorage if Supabase fetch fails
     const savedHistory = localStorage.getItem('sprayHistory');
-    if (savedHistory) {
+    if (savedHistory && sprayHistory.length === 0) {
       try {
         const parsed = JSON.parse(savedHistory);
         const history = parsed.map((item: any) => ({
@@ -38,115 +62,88 @@ const DecisionEngine: React.FC = () => {
     localStorage.setItem('sprayHistory', JSON.stringify(sprayHistory));
   }, [sprayHistory]);
   
-  const generateRecommendation = () => {
-    const envReadings = localStorage.getItem('environmentalReadings');
-    let environmentalData = null;
-    if (envReadings) {
-      try {
-        environmentalData = JSON.parse(envReadings);
-      } catch (error) {
-        console.error('Error parsing environmental readings:', error);
-      }
-    }
-    
-    const pestData = localStorage.getItem('pestDetections');
-    let pestDetections = [];
-    if (pestData) {
-      try {
-        pestDetections = JSON.parse(pestData);
-      } catch (error) {
-        console.error('Error parsing pest detections:', error);
-      }
-    }
-    
-    const lastSpray = sprayHistory
-      .filter(spray => spray.location === selectedZone)
-      .sort((a, b) => b.date.getTime() - a.date.getTime())[0];
-    
-    const daysSinceLastSpray = lastSpray 
-      ? Math.floor((new Date().getTime() - new Date(lastSpray.date).getTime()) / (1000 * 60 * 60 * 24)) 
-      : 100;
-    
-    const reasons: string[] = [];
-    let decision: 'spray' | 'dont-spray' = 'dont-spray';
-    
-    const hasHighThreatPests = Math.random() > 0.7; // Simulating high threat pests
-    if (hasHighThreatPests) {
-      reasons.push('High threat pests detected in this zone (bollworm/whitefly).');
-      decision = 'spray'; // Spray regardless of pest count if high threat pests are present
-    } else {
-      const pestPressure = Math.random() > 0.5 ? 'high' : 'low';
-      if (pestPressure === 'high') {
-        reasons.push('High pest pressure detected in this zone.');
-        decision = 'spray';
+  const generateRecommendation = async () => {
+    try {
+      // Use the decisionService to get a recommendation
+      const result = await decisionService.getRecommendation(selectedZone);
+      
+      setRecommendation(result.decision);
+      setJustification(result.reasons);
+      setThreatLevel(result.threatLevel);
+      
+      // Show notification based on threat level
+      if (result.threatLevel === 'high') {
+        toast.error('High Threat Level Detected', {
+          description: 'Immediate spraying recommended regardless of pest count',
+          duration: 7000,
+        });
+        
+        uiToast({
+          title: result.decision === 'spray' ? 'Spray Recommended' : 'Spray Not Recommended',
+          description: result.reasons[0],
+          variant: 'destructive',
+        });
       } else {
-        reasons.push('Low pest pressure in this zone - monitoring recommended.');
+        toast.info(result.decision === 'spray' ? 'Spray Recommended' : 'Spray Not Recommended', {
+          description: result.reasons[0],
+          duration: 5000,
+        });
+        
+        uiToast({
+          title: result.decision === 'spray' ? 'Spray Recommended' : 'Spray Not Recommended',
+          description: result.reasons[0],
+          variant: result.decision === 'spray' ? 'default' : 'destructive',
+        });
       }
+    } catch (error) {
+      console.error("Error generating recommendation:", error);
+      toast.error('Failed to generate recommendation', {
+        description: 'Please try again later',
+      });
     }
-    
-    if (environmentalData) {
-      const { readings, cropStage } = environmentalData;
-      
-      if (readings.humidity > 80) {
-        reasons.push('High humidity (>80%) increases risk of disease with chemical application.');
-        decision = 'dont-spray';
-      }
-      
-      if (readings.temperature > 30) {
-        reasons.push('High temperature (>30°C) may cause phytotoxicity with chemical application.');
-        decision = 'dont-spray';
-      }
-      
-      if (cropStage === 'flowering') {
-        reasons.push('Crop is in sensitive flowering stage - potential yield impact from spraying.');
-      }
-    }
-    
-    if (daysSinceLastSpray < 7) {
-      reasons.push(`Only ${daysSinceLastSpray} days since last treatment. Minimum 7-day interval required.`);
-      // Only override to don't spray if it's not a high threat pest situation
-      if (!hasHighThreatPests) {
-        decision = 'dont-spray';
-      }
-    } else {
-      reasons.push(`${daysSinceLastSpray} days since last treatment, adequate interval for re-application if needed.`);
-    }
-    
-    const rainPredicted = Math.random() > 0.7;
-    if (rainPredicted) {
-      reasons.push('Rain predicted in the next 24 hours, reducing spray effectiveness.');
-      decision = 'dont-spray';
-    }
-    
-    setRecommendation(decision);
-    setJustification(reasons);
-    
-    toast({
-      title: decision === 'spray' ? 'Spray Recommended' : 'Spray Not Recommended',
-      description: reasons[0],
-      variant: decision === 'spray' ? 'default' : 'destructive',
-    });
   };
   
-  const recordSprayApplication = () => {
+  const recordSprayApplication = async () => {
     if (recommendation !== 'spray') return;
     
-    const newSpray: SprayHistory = {
+    const newSpray: SprayHistoryItem = {
       date: new Date(),
       location: selectedZone,
       pestType: 'Mixed pests',
       chemical: 'Botanical insecticide'
     };
     
-    setSprayHistory(prev => [...prev, newSpray]);
-    
-    toast({
-      title: 'Spray Application Recorded',
-      description: `Treatment applied in ${selectedZone} on ${new Date().toLocaleDateString()}`,
-    });
-    
-    setRecommendation(null);
-    setJustification([]);
+    try {
+      // Record spray application using decisionService
+      await decisionService.recordSprayApplication({
+        date: new Date(),
+        location: selectedZone,
+        target: 'Mixed pests',
+        product: 'Botanical insecticide',
+        rate: '15ml/L',
+        applicator: 'System user',
+      });
+      
+      setSprayHistory(prev => [...prev, newSpray]);
+      
+      toast.success('Spray Application Recorded', {
+        description: `Treatment applied in ${selectedZone} on ${new Date().toLocaleDateString()}`,
+        duration: 5000,
+      });
+      
+      uiToast({
+        title: 'Spray Application Recorded',
+        description: `Treatment applied in ${selectedZone} on ${new Date().toLocaleDateString()}`,
+      });
+      
+      setRecommendation(null);
+      setJustification([]);
+    } catch (error) {
+      console.error("Error recording spray application:", error);
+      toast.error('Failed to record spray application', {
+        description: 'Please try again later',
+      });
+    }
   };
   
   const zones = [
@@ -156,9 +153,26 @@ const DecisionEngine: React.FC = () => {
     { id: 'south-field', name: 'South Field' },
   ];
   
+  const getThreatIcon = () => {
+    switch (threatLevel) {
+      case 'high':
+        return <Skull className="h-12 w-12 text-red-500" />;
+      case 'medium':
+        return <AlertTriangle className="h-12 w-12 text-amber-500" />;
+      case 'low':
+        return recommendation === 'spray' 
+          ? <Check className="h-12 w-12 text-green-500" />
+          : <AlertTriangle className="h-12 w-12 text-red-500" />;
+      default:
+        return recommendation === 'spray' 
+          ? <Check className="h-12 w-12 text-green-500" />
+          : <AlertTriangle className="h-12 w-12 text-red-500" />;
+    }
+  };
+  
   return (
     <div id="decision-engine" className="space-y-6">
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden animate-fade-in-slide duration-700">
         <CardHeader className="bg-primary/5">
           <CardTitle className="flex items-center gap-2">
             <Droplets className="h-5 w-5 text-primary" />
@@ -193,33 +207,51 @@ const DecisionEngine: React.FC = () => {
               
               {recommendation && (
                 <Card className={
-                  recommendation === 'spray' 
-                    ? 'border-green-500 bg-green-50' 
-                    : 'border-red-500 bg-red-50'
+                  threatLevel === 'high'
+                    ? 'border-red-500 bg-red-50 animate-pulse-once' 
+                    : recommendation === 'spray' 
+                      ? 'border-green-500 bg-green-50' 
+                      : 'border-red-500 bg-red-50'
                 }>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-center mb-4">
-                      {recommendation === 'spray' ? (
-                        <div className="h-24 w-24 rounded-full bg-green-100 flex items-center justify-center">
-                          <Check className="h-12 w-12 text-green-500" />
-                        </div>
-                      ) : (
-                        <div className="h-24 w-24 rounded-full bg-red-100 flex items-center justify-center">
-                          <AlertTriangle className="h-12 w-12 text-red-500" />
-                        </div>
-                      )}
+                      <div className={`h-24 w-24 rounded-full ${
+                        threatLevel === 'high' 
+                          ? 'bg-red-100' 
+                          : recommendation === 'spray' 
+                            ? 'bg-green-100' 
+                            : 'bg-red-100'
+                      } flex items-center justify-center animate-fade-in-scale`}>
+                        {getThreatIcon()}
+                      </div>
                     </div>
                     
                     <h3 className={
-                      `text-center text-xl font-bold mb-4 ${
-                        recommendation === 'spray' ? 'text-green-700' : 'text-red-700'
+                      `text-center text-xl font-bold mb-2 ${
+                        threatLevel === 'high' 
+                          ? 'text-red-700' 
+                          : recommendation === 'spray' 
+                            ? 'text-green-700' 
+                            : 'text-red-700'
                       }`
                     }>
-                      {recommendation === 'spray' 
-                        ? 'Spray Recommended' 
-                        : 'Spray Not Recommended'
+                      {threatLevel === 'high' 
+                        ? 'High Risk - Spray Recommended'
+                        : recommendation === 'spray' 
+                          ? 'Spray Recommended' 
+                          : 'Spray Not Recommended'
                       }
                     </h3>
+                    
+                    <p className="text-center mb-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        threatLevel === 'high' ? 'bg-red-100 text-red-800' :
+                        threatLevel === 'medium' ? 'bg-amber-100 text-amber-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        Threat Level: {threatLevel.charAt(0).toUpperCase() + threatLevel.slice(1)}
+                      </span>
+                    </p>
                     
                     <div className="space-y-2">
                       <h4 className="font-medium">Justification:</h4>
@@ -230,9 +262,9 @@ const DecisionEngine: React.FC = () => {
                       </ul>
                     </div>
                     
-                    {recommendation === 'spray' && (
+                    {(recommendation === 'spray' || threatLevel === 'high') && (
                       <Button 
-                        className="w-full mt-4 bg-green-600 hover:bg-green-700"
+                        className="w-full mt-4 bg-green-600 hover:bg-green-700 animate-pulse-once"
                         onClick={recordSprayApplication}
                       >
                         Record Spray Application
@@ -245,7 +277,7 @@ const DecisionEngine: React.FC = () => {
             
             <div className="flex-1 space-y-6">
               <div className="grid grid-cols-2 gap-4">
-                <Card className="bg-primary/5">
+                <Card className="bg-primary/5 transform transition-transform hover:scale-105">
                   <CardContent className="p-4 flex flex-col items-center">
                     <Bug className="h-8 w-8 text-red-500 mb-2" />
                     <span className="text-xs text-muted-foreground">Pest Pressure</span>
@@ -253,7 +285,7 @@ const DecisionEngine: React.FC = () => {
                   </CardContent>
                 </Card>
                 
-                <Card className="bg-primary/5">
+                <Card className="bg-primary/5 transform transition-transform hover:scale-105">
                   <CardContent className="p-4 flex flex-col items-center">
                     <Leaf className="h-8 w-8 text-green-500 mb-2" />
                     <span className="text-xs text-muted-foreground">Crop Stage</span>
@@ -261,7 +293,7 @@ const DecisionEngine: React.FC = () => {
                   </CardContent>
                 </Card>
                 
-                <Card className="bg-primary/5">
+                <Card className="bg-primary/5 transform transition-transform hover:scale-105">
                   <CardContent className="p-4 flex flex-col items-center">
                     <CalendarDays className="h-8 w-8 text-blue-500 mb-2" />
                     <span className="text-xs text-muted-foreground">Last Treatment</span>
@@ -269,7 +301,7 @@ const DecisionEngine: React.FC = () => {
                   </CardContent>
                 </Card>
                 
-                <Card className="bg-primary/5">
+                <Card className="bg-primary/5 transform transition-transform hover:scale-105">
                   <CardContent className="p-4 flex flex-col items-center">
                     <BarChart2 className="h-8 w-8 text-purple-500 mb-2" />
                     <span className="text-xs text-muted-foreground">Efficacy</span>
@@ -278,7 +310,7 @@ const DecisionEngine: React.FC = () => {
                 </Card>
               </div>
               
-              <Card>
+              <Card className="transform transition-all hover:-translate-y-1">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">Spray History</CardTitle>
                 </CardHeader>
@@ -294,7 +326,7 @@ const DecisionEngine: React.FC = () => {
                         .map((spray, index) => (
                           <div 
                             key={index} 
-                            className="p-3 border rounded-md text-sm flex justify-between"
+                            className="p-3 border rounded-md text-sm flex justify-between hover:bg-muted/50 transition-colors"
                           >
                             <div>
                               <p className="font-medium">{spray.location}</p>
@@ -338,9 +370,9 @@ const DecisionEngine: React.FC = () => {
                       document.body.removeChild(a);
                       URL.revokeObjectURL(url);
                       
-                      toast({
-                        title: 'Export Complete',
+                      toast.success('Export Complete', {
                         description: 'Spray history has been exported as CSV',
+                        duration: 3000,
                       });
                     }}
                   >
