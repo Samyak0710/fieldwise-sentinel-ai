@@ -11,7 +11,7 @@ export const pests: Pest[] = [
     threat: 'medium',
     affectedCrops: ['tomatoes', 'peppers', 'cucumbers', 'lettuce'],
     recommendedTreatments: ['Neem oil', 'Insecticidal soap', 'Ladybugs (biological control)'],
-    imageUrl: 'https://images.unsplash.com/photo-1533407411655-dcce1534c1a6?q=80&w=500',
+    imageUrl: 'https://images.unsplash.com/photo-1533407411655-dcce1534c1a6?q=80&w=500&auto=format',
     isBeneficial: false
   },
   {
@@ -22,7 +22,7 @@ export const pests: Pest[] = [
     threat: 'high',
     affectedCrops: ['tomatoes', 'cucumbers', 'eggplants', 'peppers'],
     recommendedTreatments: ['Yellow sticky traps', 'Neem oil', 'Insecticidal soap', 'Encarsia formosa (parasitic wasp)'],
-    imageUrl: 'https://images.pexels.com/photos/6566785/pexels-photo-6566785.jpeg?w=500',
+    imageUrl: 'https://images.pexels.com/photos/6566785/pexels-photo-6566785.jpeg?w=500&auto=format',
     isBeneficial: false
   },
   {
@@ -33,7 +33,7 @@ export const pests: Pest[] = [
     threat: 'high',
     affectedCrops: ['beans', 'strawberries', 'cucumbers', 'tomatoes'],
     recommendedTreatments: ['Increasing humidity', 'Neem oil', 'Insecticidal soap', 'Predatory mites'],
-    imageUrl: 'https://images.pexels.com/photos/276517/pexels-photo-276517.jpeg?w=500',
+    imageUrl: 'https://images.unsplash.com/photo-1558892704-bcabcf889ace?w=500&auto=format',
     isBeneficial: false
   },
   {
@@ -44,7 +44,7 @@ export const pests: Pest[] = [
     threat: 'medium',
     affectedCrops: ['onions', 'beans', 'carrots', 'flowers'],
     recommendedTreatments: ['Blue sticky traps', 'Spinosad', 'Neem oil', 'Predatory mites'],
-    imageUrl: 'https://images.pexels.com/photos/634487/pexels-photo-634487.jpeg?w=500',
+    imageUrl: 'https://images.unsplash.com/photo-1579555862771-0a3611bd1c47?w=500&auto=format',
     isBeneficial: false
   },
   {
@@ -55,7 +55,7 @@ export const pests: Pest[] = [
     threat: 'low',
     affectedCrops: ['all crops'],
     recommendedTreatments: ['Conservation', 'Habitat creation', 'Avoid broad-spectrum insecticides'],
-    imageUrl: 'https://images.unsplash.com/photo-1556526588-a0cb8b0a48b4?q=80&w=500',
+    imageUrl: 'https://images.unsplash.com/photo-1556526588-a0cb8b0a48b4?w=500&auto=format',
     isBeneficial: true
   },
   {
@@ -66,7 +66,7 @@ export const pests: Pest[] = [
     threat: 'low',
     affectedCrops: ['all crops'],
     recommendedTreatments: ['Conservation', 'Habitat creation', 'Avoid broad-spectrum insecticides'],
-    imageUrl: 'https://images.pexels.com/photos/8064394/pexels-photo-8064394.jpeg?w=500',
+    imageUrl: 'https://images.unsplash.com/photo-1559073132-01166a7b64b8?w=500&auto=format',
     isBeneficial: true
   }
 ];
