@@ -1,3 +1,4 @@
+
 // Types for our data model
 export interface Pest {
   id: string;
@@ -66,7 +67,7 @@ export const pests: Pest[] = [
     threat: 'medium',
     affectedCrops: ['tomatoes', 'peppers', 'cucumbers', 'lettuce'],
     recommendedTreatments: ['Neem oil', 'Insecticidal soap', 'Ladybugs (biological control)'],
-    imageUrl: '/lovable-uploads/7dad43a8-762b-4fcf-8ef2-8031147cc7eb.png',
+    imageUrl: '/lovable-uploads/aphid.png',
     isBeneficial: false
   },
   {
@@ -77,7 +78,7 @@ export const pests: Pest[] = [
     threat: 'high',
     affectedCrops: ['tomatoes', 'cucumbers', 'eggplants', 'peppers'],
     recommendedTreatments: ['Yellow sticky traps', 'Neem oil', 'Insecticidal soap', 'Encarsia formosa (parasitic wasp)'],
-    imageUrl: '/lovable-uploads/a71cde7c-e0f1-49f0-9333-abb6970835c0.png',
+    imageUrl: '/lovable-uploads/whitefly.png',
     isBeneficial: false
   },
   {
@@ -88,7 +89,7 @@ export const pests: Pest[] = [
     threat: 'high',
     affectedCrops: ['beans', 'strawberries', 'cucumbers', 'tomatoes'],
     recommendedTreatments: ['Increasing humidity', 'Neem oil', 'Insecticidal soap', 'Predatory mites'],
-    imageUrl: '/placeholder.svg',
+    imageUrl: '/lovable-uploads/spider-mite.png',
     isBeneficial: false
   },
   {
@@ -99,7 +100,7 @@ export const pests: Pest[] = [
     threat: 'medium',
     affectedCrops: ['onions', 'beans', 'carrots', 'flowers'],
     recommendedTreatments: ['Blue sticky traps', 'Spinosad', 'Neem oil', 'Predatory mites'],
-    imageUrl: '/placeholder.svg',
+    imageUrl: '/lovable-uploads/thrips.png',
     isBeneficial: false
   },
   {
@@ -110,7 +111,7 @@ export const pests: Pest[] = [
     threat: 'low',
     affectedCrops: ['all crops'],
     recommendedTreatments: ['Conservation', 'Habitat creation', 'Avoid broad-spectrum insecticides'],
-    imageUrl: '/placeholder.svg',
+    imageUrl: '/lovable-uploads/ladybug.png',
     isBeneficial: true
   },
   {
@@ -121,7 +122,7 @@ export const pests: Pest[] = [
     threat: 'low',
     affectedCrops: ['all crops'],
     recommendedTreatments: ['Conservation', 'Habitat creation', 'Avoid broad-spectrum insecticides'],
-    imageUrl: '/placeholder.svg',
+    imageUrl: '/lovable-uploads/lacewing.png',
     isBeneficial: true
   }
 ];
