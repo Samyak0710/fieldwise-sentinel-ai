@@ -1,4 +1,3 @@
-
 import { Pest } from './types';
 
 // Mock pests data
@@ -11,7 +10,7 @@ export const pests: Pest[] = [
     threat: 'medium',
     affectedCrops: ['tomatoes', 'peppers', 'cucumbers', 'lettuce'],
     recommendedTreatments: ['Neem oil', 'Insecticidal soap', 'Ladybugs (biological control)'],
-    imageUrl: 'https://images.unsplash.com/photo-1533407411655-dcce1534c1a6?q=80&w=500&auto=format',
+    imageUrl: 'https://images.unsplash.com/photo-1522325636832-5dbc1440f793?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     isBeneficial: false
   },
   {
