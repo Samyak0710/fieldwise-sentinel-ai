@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Leaf, Lock, User, Eye, EyeOff, Mail } from 'lucide-react';
 
-const SignupForm = ({ onSignup, onToggleForm }: { onSignup: () => void, onToggleForm: () => void }) => {
+const SignupForm = ({ onSignup, onToggleForm }: { onSignup: (userData: any) => void, onToggleForm: () => void }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,8 +30,7 @@ const SignupForm = ({ onSignup, onToggleForm }: { onSignup: () => void, onToggle
     // Simulate signup - in a real app, this would be a proper authentication
     setTimeout(() => {
       setIsLoading(false);
-      localStorage.setItem('isAuthenticated', 'true');
-      onSignup();
+      onSignup({ name, email, password });
     }, 1500);
   };
 

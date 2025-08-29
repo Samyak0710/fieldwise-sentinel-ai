@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ui/mode-toggle";
-import { Bug, LogOut, MenuIcon, RefreshCw, WifiOff } from "lucide-react";
+import { Bug, LogOut, MenuIcon, RefreshCw, WifiOff, LogIn } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from '@/contexts/AuthContext';
 import NotificationMenu from './NotificationMenu';
 import VoiceCommand from './VoiceCommand';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -13,6 +14,7 @@ import { apiService } from '@/services/api';
 const Header: React.FC = () => {
   const isMobile = useIsMobile();
   const location = useLocation();
+  const { isAuthenticated, logout } = useAuth();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [syncingData, setSyncingData] = useState(false);
@@ -48,8 +50,8 @@ const Header: React.FC = () => {
   }, []);
   
   const handleLogout = () => {
-    localStorage.setItem('isAuthenticated', 'false');
-    window.location.href = '/login';
+    logout();
+    window.location.href = '/';
   };
   
   const handleSyncData = async () => {
@@ -151,15 +153,31 @@ const Header: React.FC = () => {
           <VoiceCommand />
           <NotificationMenu />
           <ModeToggle />
-          <Button 
-            size="icon" 
-            variant="ghost" 
-            onClick={handleLogout} 
-            className="hidden sm:flex"
-            aria-label="Log out"
-          >
-            <LogOut className="h-5 w-5" aria-hidden="true" />
-          </Button>
+          
+          {isAuthenticated ? (
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              onClick={handleLogout} 
+              className="hidden sm:flex"
+              aria-label="Log out"
+            >
+              <LogOut className="h-5 w-5" aria-hidden="true" />
+            </Button>
+          ) : (
+            <Link to="/login">
+              <Button 
+                size="sm" 
+                variant="default"
+                className="hidden sm:flex"
+                aria-label="Log in"
+              >
+                <LogIn className="h-4 w-4 mr-2" aria-hidden="true" />
+                Login
+              </Button>
+            </Link>
+          )}
+          
           <Sheet>
             <SheetTrigger asChild className="md:hidden">
               <Button variant="ghost" size="icon" aria-label="Open menu">
@@ -209,10 +227,19 @@ const Header: React.FC = () => {
                     Settings
                   </Button>
                 </Link>
-                <Button variant="ghost" className="justify-start text-red-500" onClick={handleLogout}>
-                  <LogOut className="mr-2 h-5 w-5" aria-hidden="true" />
-                  Logout
-                </Button>
+                {isAuthenticated ? (
+                  <Button variant="ghost" className="justify-start w-full" onClick={handleLogout}>
+                    <LogOut className="mr-2 h-5 w-5" aria-hidden="true" />
+                    Logout
+                  </Button>
+                ) : (
+                  <Link to="/login">
+                    <Button variant="ghost" className="justify-start w-full">
+                      <LogIn className="mr-2 h-5 w-5" aria-hidden="true" />
+                      Login
+                    </Button>
+                  </Link>
+                )}
               </nav>
               
               {/* Mobile offline indicators */}

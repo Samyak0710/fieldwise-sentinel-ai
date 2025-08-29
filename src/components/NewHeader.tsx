@@ -2,17 +2,19 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Settings, User, LogOut, Menu, X, Bug } from 'lucide-react';
+import { Settings, User, LogOut, Menu, X, Bug, LogIn } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 export function NewHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { isAuthenticated, logout } = useAuth();
   
   const handleLogout = () => {
-    localStorage.setItem('isAuthenticated', 'false');
+    logout();
     toast.success('Logged out successfully');
-    window.location.href = '/login';
+    window.location.href = '/';
   };
   
   const navigation = [
@@ -58,9 +60,18 @@ export function NewHeader() {
               <User className="h-5 w-5" />
             </Button>
             
-            <Button variant="ghost" size="icon" onClick={handleLogout}>
-              <LogOut className="h-5 w-5" />
-            </Button>
+            {isAuthenticated ? (
+              <Button variant="ghost" size="icon" onClick={handleLogout}>
+                <LogOut className="h-5 w-5" />
+              </Button>
+            ) : (
+              <Link to="/login">
+                <Button size="sm">
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Login
+                </Button>
+              </Link>
+            )}
           </div>
           
           <div className="md:hidden">
@@ -94,10 +105,19 @@ export function NewHeader() {
             ))}
             <div className="pt-4 pb-3 border-t border-gray-200">
               <div className="space-y-1 px-2">
-                <Button className="w-full justify-start" variant="ghost" onClick={handleLogout}>
-                  <LogOut className="h-5 w-5 mr-2" />
-                  Log out
-                </Button>
+                {isAuthenticated ? (
+                  <Button className="w-full justify-start" variant="ghost" onClick={handleLogout}>
+                    <LogOut className="h-5 w-5 mr-2" />
+                    Log out
+                  </Button>
+                ) : (
+                  <Link to="/login">
+                    <Button className="w-full justify-start" variant="default">
+                      <LogIn className="h-5 w-5 mr-2" />
+                      Log in
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>

@@ -35,7 +35,12 @@ const farmerSchema = z.object({
 
 type FarmerFormData = z.infer<typeof farmerSchema>;
 
-const FarmerRegistrationForm = () => {
+interface FarmerRegistrationFormProps {
+  onSubmit?: (data: any) => void;
+  showTitle?: boolean;
+}
+
+const FarmerRegistrationForm = ({ onSubmit, showTitle = true }: FarmerRegistrationFormProps) => {
   const form = useForm<FarmerFormData>({
     resolver: zodResolver(farmerSchema),
     defaultValues: {
@@ -55,22 +60,28 @@ const FarmerRegistrationForm = () => {
     }
   });
 
-  const onSubmit = (data: FarmerFormData) => {
+  const onSubmitHandler = (data: FarmerFormData) => {
     console.log('Farmer registration data:', data);
-    toast.success('Farmer registered successfully!');
+    if (onSubmit) {
+      onSubmit(data);
+    } else {
+      toast.success('Farmer registered successfully!');
+    }
   };
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle>Farmer Registration</CardTitle>
-        <CardDescription>
-          Register your details to access our smart farming platform
-        </CardDescription>
-      </CardHeader>
+      {showTitle && (
+        <CardHeader>
+          <CardTitle>Farmer Registration</CardTitle>
+          <CardDescription>
+            Register your details to access our smart farming platform
+          </CardDescription>
+        </CardHeader>
+      )}
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmitHandler)} className="space-y-6">
             {/* Personal Information */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
