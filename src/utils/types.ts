@@ -56,3 +56,27 @@ export interface Treatment {
   notes?: string;
   effectivenessRating?: number;
 }
+
+export interface Farmer {
+  id: string;
+  // Personal Information
+  name: string;
+  age: number;
+  education: string;
+  
+  // Land Details
+  acre: number;
+  soilType: string;
+  phValue: number;
+  
+  // Location Details
+  taluk: string;
+  district: string;
+  hobli: string;
+  village: string;
+  pincode: string;
+  
+  // Coordinates
+  latitude: number;
+  longitude: number;
+}
